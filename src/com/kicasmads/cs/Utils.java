@@ -1,5 +1,11 @@
 package com.kicasmads.cs;
 
+import net.minecraft.server.v1_15_R1.NBTTagCompound;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
+import org.bukkit.inventory.ItemStack;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -35,5 +41,31 @@ public class Utils {
      */
     public static String formattedName(Enum e) {
         return e.name().replaceAll("_", "-").toLowerCase();
+    }
+
+    public static ItemStack itemStackFromNBT(NBTTagCompound nbt) {
+        return nbt == null || nbt.isEmpty() ? null: CraftItemStack.asBukkitCopy(ReflectionHelper
+                .instantiate(net.minecraft.server.v1_15_R1.ItemStack.class, nbt));
+    }
+
+    public static NBTTagCompound itemStackToNBT(ItemStack stack) {
+        NBTTagCompound nbt = new NBTTagCompound();
+        if(stack != null)
+            CraftItemStack.asNMSCopy(stack).save(nbt);
+        return nbt;
+    }
+
+    public static Location locationFromNBT(NBTTagCompound nbt) {
+        return new Location(Bukkit.getWorld(nbt.getString("world")), nbt.getDouble("x"), nbt.getDouble("y"),
+                nbt.getDouble("z"), nbt.getFloat("yaw"), nbt.getFloat("pitch"));
+    }
+
+    public static NBTTagCompound locationToNBT(Location location) {
+        NBTTagCompound nbt = new NBTTagCompound();
+        nbt.setString("world", location.getWorld().getUID().toString());
+        nbt.setDouble("x", location.getX());
+        nbt.setDouble("y", location.getY());
+        nbt.setDouble("z", location.getZ());
+        return nbt;
     }
 }

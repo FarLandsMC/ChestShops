@@ -10,6 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ChestShops extends JavaPlugin {
     private Material currencyItem;
     private ItemStack currencyStack;
+    private DataHandler dataHandler = new DataHandler();
 
     public static final String SHOP_HEADER = "[shop]";
     private static ChestShops instance;
@@ -33,7 +34,13 @@ public class ChestShops extends JavaPlugin {
     @Override
     public void onEnable() {
         initConfig();
+        dataHandler.load("shops.nbt");
         Bukkit.getPluginManager().registerEvents(new CSEventHandler(), this);
+    }
+
+    @Override
+    public void onDisable() {
+        dataHandler.save("shops.nbt");
     }
 
     private void initConfig() {
