@@ -1,0 +1,6 @@
+api-version: 1.15
+main: com.kicasmad.cs.ChestShops
+name: ChestShops
+description: A simple plugin for chest shops
+authors: [Kishiko73, maddymakesgames, xCassyx]
+version: 1.0
