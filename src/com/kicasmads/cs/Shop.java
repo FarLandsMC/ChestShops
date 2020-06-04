@@ -1,6 +1,7 @@
 package com.kicasmads.cs;
 
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
@@ -49,6 +50,11 @@ public class Shop {
         // Make sure shop can pay out
         if(!inv.containsAtLeast(sellItem, sellAmount)) {
             player.chat("This shop is out of stock. Come back later.");
+            return;
+        }
+
+        if(inv.firstEmpty() == -1) {
+            player.sendMessage(ChatColor.RED + "Chest is full and cannot accept any more transactions");
             return;
         }
 
@@ -129,7 +135,7 @@ public class Shop {
                 player.getWorld().dropItem(player.getLocation(), dropStack);
 
             }
-            player.chat("Your inventory was full so the items you bought was dropped on the floor.");
+            player.sendMessage(ChatColor.GREEN + "Your inventory was full so the items you bought was dropped on the floor.");
         }
     }
 
