@@ -1,13 +1,19 @@
 package com.kicasmads.cs;
 
+import net.minecraft.server.v1_15_R1.EntityItem;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftItem;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Item;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 public class Utils {
     /**
@@ -55,7 +61,7 @@ public class Utils {
     }
 
     public static Location locationFromNBT(NBTTagCompound nbt) {
-        return new Location(Bukkit.getWorld(nbt.getString("world")), nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"), 0, 0);
+        return new Location(Bukkit.getWorld(UUID.fromString(nbt.getString("world"))), nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
     }
 
     public static NBTTagCompound locationToNBT(Location location) {
@@ -65,5 +71,54 @@ public class Utils {
         nbt.setInt("y", location.getBlockY());
         nbt.setInt("z", location.getBlockZ());
         return nbt;
+    }
+
+    public static Item summonStaticItem(Location location, ItemStack item) {
+        Item itemEntity = (Item) location.getWorld().dropItem(location, item);
+        itemEntity.setVelocity(new Vector());
+        itemEntity.setGravity(false);
+        ((EntityItem) ((CraftItem) itemEntity).getHandle()).age = -32768;
+        itemEntity.setPickupDelay(32767);
+        return itemEntity;
+    }
+
+    public static int firstInsertableStack(Inventory inv, ItemStack stack) {
+        int firstStack = inv.first(stack.getType());
+
+        if(firstStack == -1) return -1;
+        if(inv.getItem(firstStack).getAmount() != stack.getMaxStackSize()) return firstStack;
+
+        ItemStack[] invContents = inv.getStorageContents();
+
+        for(int i = firstStack; i < invContents.length; i++) {
+            ItemStack currStack = invContents[i];
+            if(currStack != null && currStack.getType().equals(stack.getType()) && currStack.getAmount() != currStack.getMaxStackSize()) return i;
+        }
+        return -1;
+    }
+
+    public static String getItemName(ItemStack stack) {
+        return toProperCase(stack.getType().name().replaceAll("_", " "));
+    }
+
+    public static String toProperCase(String str) {
+        StringBuilder builder = new StringBuilder(str.length());
+        boolean nextUpperCase = true;
+
+        for(char c : str.toCharArray()) {
+            if(Character.isSpaceChar(c)) {
+                nextUpperCase = true;
+            }
+            else if(nextUpperCase) {
+                c = Character.toUpperCase(c);
+                nextUpperCase = false;
+            } else {
+                c = Character.toLowerCase(c);
+            }
+
+            builder.append(c);
+        }
+
+        return builder.toString();
     }
 }

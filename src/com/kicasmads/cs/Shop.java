@@ -1,18 +1,16 @@
 package com.kicasmads.cs;
 
-import net.minecraft.server.v1_15_R1.EntityItem;
+import com.kicasmads.cs.event.ShopTransactionEvent;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.type.WallSign;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftItem;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.UUID;
 
@@ -25,6 +23,8 @@ public class Shop {
     private final ItemStack sellItem;
     private final int sellAmount;
     private final int buyAmount;
+    private UUID buyItemEntity;
+    private UUID sellItemEntity;
 
     public Shop(ShopType type, UUID owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
                 int buyAmount, int sellAmount) {
@@ -47,6 +47,8 @@ public class Shop {
         sellItem = Utils.itemStackFromNBT(tag.getCompound("sellItem"));
         buyAmount = tag.getInt("buyAmount");
         sellAmount = tag.getInt("sellAmount");
+        if(tag.hasKey("buyDisplayItem")) buyItemEntity = UUID.fromString(tag.getString("buyDisplayItem"));
+        if(tag.hasKey("sellDisplayItem")) sellItemEntity = UUID.fromString(tag.getString("sellDisplayItem"));
     }
 
     public final ShopType getType() {
@@ -58,12 +60,12 @@ public class Shop {
     }
 
     public void tryTransaction(Player player) {
-        Chest shopChest = (Chest) chest.getBlock();
+        Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory inv = shopChest.getBlockInventory();
 
         // Make sure shop can pay out
         if(!inv.containsAtLeast(sellItem, sellAmount)) {
-            player.chat("This shop is out of stock. Come back later.");
+            player.sendMessage(ChatColor.RED + "This shop is out of stock. Come back later.");
             return;
         }
 
@@ -76,25 +78,31 @@ public class Shop {
 
         // Make sure player can pay
         if(!playerInv.containsAtLeast(buyItem, buyAmount)) {
-            player.chat("You need " + buyItem.getAmount() + " " + buyItem.toString() + " in order to buy this.");
+            player.sendMessage(ChatColor.RED + "You need " + buyItem.getAmount() + " " + buyItem.toString() + " in order to buy this.");
             return;
         }
 
-        removePlayerCost(playerInv);
+        ShopTransactionEvent event = new ShopTransactionEvent(player, this);
+        ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
 
-        givePlayerItems(player);
+        if(!event.isCancelled()) {
+            removePlayerCost(playerInv);
+            removeSellItems();
+            givePlayerItems(player);
+            putBuyItems();
+        }
     }
 
     private void removeSellItems() {
-        Chest shopChest = (Chest) chest.getBlock();
+        Chest shopChest = (Chest) chest.getBlock().getState();
         int numRemoved = 0;
 
         while(numRemoved < sellAmount) {
             // Get first instance of sell item
-            ItemStack stack = shopChest.getBlockInventory().getItem(shopChest.getBlockInventory().first(sellItem));
+            ItemStack stack = shopChest.getBlockInventory().getItem(shopChest.getBlockInventory().first(sellItem.getType()));
             numRemoved += stack.getAmount();
             // Set the stack to either how many we have left to remove or 0
-            stack.setAmount(Math.max(stack.getAmount() - (sellAmount - numRemoved), 0));
+            stack.setAmount(Math.max(stack.getAmount() - sellAmount, 0));
             // Remove the stack if it has an amount of 0
             if(stack.getAmount() == 0) shopChest.getBlockInventory().remove(stack);
         }
@@ -104,10 +112,10 @@ public class Shop {
         int numRemoved = 0;
 
         while(numRemoved < buyAmount) {
-            ItemStack stack = playerInv.getItem(playerInv.first(buyItem));
+            ItemStack stack = playerInv.getItem(playerInv.first(buyItem.getType()));
             numRemoved += stack.getAmount();
 
-            stack.setAmount(Math.min(stack.getAmount() - (buyAmount - numRemoved), 0));
+            stack.setAmount(Math.max(stack.getAmount() - buyAmount, 0));
             if(stack.getAmount() == 0) playerInv.remove(stack);
         }
     }
@@ -117,9 +125,9 @@ public class Shop {
         int numGiven = 0;
 
         // Loop until we have no more left to give or we can't insert any more items
-        while(numGiven < sellAmount && (playerInv.firstEmpty() == -1 && playerInv.first(sellItem) == -1)) {
+        while(numGiven < sellAmount && (playerInv.firstEmpty() != -1 || Utils.firstInsertableStack(playerInv, sellItem) != -1)) {
             // See if we can insert into an already existing stack
-            if(playerInv.first(sellItem) == -1) {
+            if(Utils.firstInsertableStack(playerInv, sellItem) == -1 || sellItem.getMaxStackSize() == 1) {
                 ItemStack[] contents = playerInv.getStorageContents();
                 ItemStack giveItem = sellItem.clone();
                 // Set the stack size to either the max stack or the amount we have left to give
@@ -127,16 +135,16 @@ public class Shop {
                 numGiven += giveItem.getAmount();
                 // Insert the new stack into the player's inventory
                 contents[playerInv.firstEmpty()] = giveItem;
-            } else {
-                ItemStack stack = playerInv.getItem(playerInv.first(sellItem));
-                int ogAmonut = stack.getAmount();
+                playerInv.setContents(contents);
+            } else if(sellItem.getMaxStackSize() != 1){
+                ItemStack stack = playerInv.getItem(Utils.firstInsertableStack(playerInv, sellItem));
+                int ogAmount = stack.getAmount();
 
                 // Set the stack to either the amount we have left + the current amount or the max size
                 stack.setAmount(Math.min(stack.getAmount() + (sellAmount - numGiven), sellItem.getMaxStackSize()));
                 // Only count items we added, not ones that were already there
-                numGiven += stack.getAmount() - ogAmonut;
+                numGiven += stack.getAmount() - ogAmount;
             }
-
         }
 
         // Drop any extra items
@@ -153,59 +161,102 @@ public class Shop {
         }
     }
 
+    private void putBuyItems() {
+        Inventory chestInv = ((Chest) chest.getBlock().getState()).getBlockInventory();
+
+        int numGiven = 0;
+
+        while(numGiven < buyAmount && (chestInv.firstEmpty() != -1 || Utils.firstInsertableStack(chestInv, buyItem) != -1)) {
+
+            if(Utils.firstInsertableStack(chestInv, buyItem) == -1) {
+                ItemStack[] contents = chestInv.getStorageContents();
+                ItemStack giveItem = buyItem.clone();
+
+                giveItem.setAmount(Math.min(buyAmount - numGiven, buyItem.getMaxStackSize()));
+                numGiven += giveItem.getAmount();
+
+                contents[chestInv.firstEmpty()] = giveItem;
+                chestInv.setContents(contents);
+            } else {
+                ItemStack stack = chestInv.getItem(Utils.firstInsertableStack(chestInv, buyItem));
+                int ogAmount = stack.getAmount();
+
+
+                stack.setAmount(Math.min(stack.getAmount() + (buyAmount - numGiven), buyItem.getMaxStackSize()));
+                numGiven += stack.getAmount() - ogAmount;
+            }
+        }
+    }
+
     public void displayItems() {
         switch (type) {
             case BUY:
-                displayItem(chest.clone().add(0.5, 0.875, 0.5), buyItem);
+                displayItem(chest.clone().add(0.5, 0.875, 0.5), buyItem, true);
                 break;
 
             case SELL:
-                displayItem(chest.clone().add(0.5, 0.875, 0.5), sellItem);
+                displayItem(chest.clone().add(0.5, 0.875, 0.5), sellItem, false);
                 break;
 
             case BARTER: {
                 // Display it so that the buy item is on the left and the sell item is on the right
-                switch (((WallSign) sign.getBlock()).getFacing()) {
+                switch (((WallSign) sign.getBlock().getBlockData()).getFacing()) {
                     case NORTH:
-                        displayItem(chest.clone().add(0.8, 0.875, 0.5), buyItem);
-                        displayItem(chest.clone().add(0.2, 0.875, 0.5), sellItem);
+                        displayItem(chest.clone().add(0.8, 0.875, 0.5), buyItem, true);
+                        displayItem(chest.clone().add(0.2, 0.875, 0.5), sellItem, false);
                         break;
 
                     case SOUTH:
-                        displayItem(chest.clone().add(0.2, 0.875, 0.5), buyItem);
-                        displayItem(chest.clone().add(0.8, 0.875, 0.5), sellItem);
+                        displayItem(chest.clone().add(0.2, 0.875, 0.5), buyItem, true);
+                        displayItem(chest.clone().add(0.8, 0.875, 0.5), sellItem, false);
                         break;
 
                     case EAST:
-                        displayItem(chest.clone().add(0.5, 0.875, 0.2), buyItem);
-                        displayItem(chest.clone().add(0.5, 0.875, 0.8), sellItem);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.2), buyItem, true);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.8), sellItem, false);
                         break;
 
                     case WEST:
-                        displayItem(chest.clone().add(0.5, 0.875, 0.8), buyItem);
-                        displayItem(chest.clone().add(0.5, 0.875, 0.2), sellItem);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.8), buyItem, true);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.2), sellItem, false);
                         break;
                 }
             }
         }
     }
 
-    private void displayItem(Location location, ItemStack stack) {
+    private void displayItem(Location location, ItemStack stack, boolean isBuy) {
         // Check to see if the item already exists
-        if (location.getWorld().getNearbyEntities(location, 0.2, 0.2, 0.2, entity -> {
-            if (entity instanceof Item)
-                return ((Item) entity).getItemStack().isSimilar(stack);
+        if (!((((type == ShopType.BUY && buyItemEntity != null) || (type == ShopType.SELL && sellItemEntity != null)) && Bukkit.getEntity(type == ShopType.BUY ? buyItemEntity : sellItemEntity) != null) ||
+                (type == ShopType.BARTER && sellItemEntity != null && buyItemEntity != null && Bukkit.getEntity(buyItemEntity) != null && Bukkit.getEntity(sellItemEntity) != null))) {
 
-            return false;
-        }).isEmpty())
-        {
             // Summon a persistent, non-pickup-able item
-            Item itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
-            itemEntity.setVelocity(new Vector());
-            itemEntity.setGravity(false);
-            itemEntity.setItemStack(stack.clone());
-            ((EntityItem) ((CraftItem) itemEntity).getHandle()).age = -32767;
-            itemEntity.setPickupDelay(32767);
+            switch(type) {
+                case SELL:
+                    sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                    break;
+                case BUY:
+                    buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                    break;
+                case BARTER:
+                    if(isBuy) buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                    else sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+            }
+
+        }
+
+    }
+
+    public void removeDisplayItems() {
+
+        if(buyItemEntity != null) {
+            Item buyItem = (Item) Bukkit.getEntity(buyItemEntity);
+            if(buyItem != null) buyItem.remove();
+        }
+
+        if(sellItemEntity != null) {
+            Item sellItem = (Item) Bukkit.getEntity(sellItemEntity);
+            if(sellItem != null) sellItem.remove();
         }
     }
 
@@ -218,8 +269,18 @@ public class Shop {
         shopTag.setString("owner", owner.toString());
         shopTag.set("sellItem", Utils.itemStackToNBT(sellItem));
         shopTag.set("buyItem", Utils.itemStackToNBT(buyItem));
-        shopTag.set("location", Utils.locationToNBT(chest));
-
+        shopTag.set("chestLocation", Utils.locationToNBT(chest));
+        shopTag.set("signLocation", Utils.locationToNBT(sign));
+        if(buyItemEntity != null) shopTag.setString("buyDisplayItem", buyItemEntity.toString());
+        if(sellItemEntity != null) shopTag.setString("sellDisplayItem", sellItemEntity.toString());
         return shopTag;
+    }
+
+    public Location getSignLocation() {
+        return sign;
+    }
+
+    public Location getChestLocation() {
+        return chest;
     }
 }
