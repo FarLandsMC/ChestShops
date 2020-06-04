@@ -4,6 +4,7 @@ import com.kicasmads.cs.event.ShopCreateEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.block.Sign;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -79,15 +80,37 @@ public class ShopBuilder {
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);
 
+        formatSign();
+
         if (event.isCancelled())
             return;
 
-        ChestShops.getDataHandler().addShop(shop);
+        ChestShops.getDataHandler().addShop(shop, chest, sign);
         shop.displayItems();
         owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
         owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
     }
 
+    private void formatSign() {
+        Sign signBlock = (Sign) sign.getBlock().getState();
+
+        signBlock.setLine(0, ChatColor.BOLD + ChestShops.SHOP_HEADER);
+        switch(type) {
+            case SELL:
+                signBlock.setLine(1, "Selling: " + ChatColor.BOLD + buyAmount);
+                signBlock.setLine(2, ChatColor.GREEN + "" + buyAmount + " " + Utils.getItemName(buyItem) + (buyAmount > 1 ? "s" : ""));
+                break;
+            case BUY:
+                signBlock.setLine(1, "Buying: " + ChatColor.BOLD + sellAmount);
+                signBlock.setLine(2, ChatColor.GREEN + "" + sellAmount + " " + Utils.getItemName(sellItem) + (sellAmount > 1 ? "s" : ""));
+                break;
+            case BARTER:
+                signBlock.setLine(1, "Bartering");
+                signBlock.setLine(2, ChatColor.GREEN + "" + buyAmount + " for " + sellAmount);
+        }
+        signBlock.setLine(3, owner.getDisplayName());
+        signBlock.update();
+    }
 
     public boolean isOwner(Player player) {
         return owner.getUniqueId().equals(player.getUniqueId());

@@ -75,8 +75,12 @@ public class DataHandler {
 		if(root.hasKey("shops")) {
 			NBTTagList shopList = root.getList("shops", 10);
 
-			for (NBTBase nbtBase : shopList)
-				shops.add(new Shop((NBTTagCompound) nbtBase));
+			for (NBTBase nbtBase : shopList) {
+				Shop s = new Shop((NBTTagCompound) nbtBase);
+				shops.add(s);
+				shopLocations.put(s.getSignLocation(), s);
+				shopLocations.put(s.getChestLocation(), s);
+			}
 		}
 	}
 
@@ -86,7 +90,7 @@ public class DataHandler {
 
 	public ShopBuilder getCachedBuilder(Location sign, Player player) {
 		ShopBuilder builder = builderCache.get(sign);
-		if(builder.isOwner(player)) return builder;
+		if(builder != null && builder.isOwner(player)) return builder;
 		return null;
 	}
 
@@ -94,7 +98,20 @@ public class DataHandler {
 		builderCache.remove(sign);
 	}
 
-	public void addShop(Shop shop) {
+	public void addShop(Shop shop, Location chestLocation, Location signLocation) {
 		shops.add(shop);
+		shopLocations.put(chestLocation, shop);
+		shopLocations.put(signLocation, shop);
+	}
+
+	public void removeShop(Shop shop) {
+		shops.remove(shop);
+		shopLocations.remove(shop.getChestLocation());
+		shopLocations.remove(shop.getSignLocation());
+		shop.removeDisplayItems();
+	}
+
+	public Shop getShop(Location location) {
+		return shopLocations.get(location);
 	}
 }
