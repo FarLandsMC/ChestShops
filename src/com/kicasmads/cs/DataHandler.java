@@ -1,8 +1,10 @@
 package com.kicasmads.cs;
 
+import net.minecraft.server.v1_15_R1.NBTBase;
 import net.minecraft.server.v1_15_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import net.minecraft.server.v1_15_R1.NBTTagList;
+import org.bukkit.Location;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +14,16 @@ import java.util.*;
 
 public class DataHandler {
 
-	HashMap<UUID, List<Shop>> shops = new HashMap<>();
+	private final List<Shop> shops;
+	private final HashMap<Location, Shop> shopLocations;
+	private final HashMap<Location, ShopBuilder> builderCache;
+
+	public DataHandler() {
+		shops = new ArrayList<>();
+		shopLocations = new HashMap<>();
+		builderCache = new HashMap<>();
+	}
+
 
 	public static void initNbt(String file) {
 		File f = new File(ChestShops.getInstance().getDataFolder(), file);
@@ -33,12 +44,8 @@ public class DataHandler {
 
 		NBTTagList shopList = new NBTTagList();
 
-		for(List<Shop> shopsList : shops.values()) {
-			for(Shop shop : shopsList) {
-				NBTTagCompound shopNbt = shop.toNbt();
-				shopList.add(shopNbt);
-			}
-		}
+		for(Shop shop : shops)
+			shopList.add(shop.toNbt());
 
 		NBTTagCompound root = new NBTTagCompound();
 		root.set("shops", shopList);
@@ -67,15 +74,8 @@ public class DataHandler {
 		if(root.hasKey("shops")) {
 			NBTTagList shopList = root.getList("shops", 10);
 
-			for (int i = 0; i < shopList.size(); i++) {
-				Shop s = new Shop((NBTTagCompound) shopList.get(i));
-				if (shops.containsKey(s.getOwner())) shops.get(s.getOwner()).add(s);
-				else {
-					List<Shop> playerShops = new ArrayList<>();
-					playerShops.add(s);
-					shops.put(s.getOwner(), playerShops);
-				}
-			}
+			for (NBTBase nbtBase : shopList)
+				shops.add(new Shop((NBTTagCompound) nbtBase));
 		}
 	}
 }
