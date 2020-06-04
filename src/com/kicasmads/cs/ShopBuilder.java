@@ -23,7 +23,7 @@ public class ShopBuilder {
         this.owner = owner;
         this.sign = sign;
         // Extrapolate the chest location
-        this.chest = sign.getBlock().getRelative(((WallSign) sign.getBlock()).getFacing().getOppositeFace()).getLocation();
+        this.chest = sign.getBlock().getRelative(((WallSign) sign.getBlock().getBlockData()).getFacing().getOppositeFace()).getLocation();
         this.buyAmount = buyAmount;
         this.sellAmount = sellAmount;
         this.buyItem = null;
@@ -62,9 +62,9 @@ public class ShopBuilder {
 
     private void prompt() {
         if (buyItem == null) {
-            owner.sendMessage(ChatColor.GOLD + "Please right-click the sign with the item you wish to buy.");
+            owner.sendMessage(ChatColor.GOLD + "Please left-click the sign with the item you wish to buy.");
         } else if (sellItem == null)
-            owner.sendMessage(ChatColor.GOLD + "Please right-click the sign with the item you wish to sell.");
+            owner.sendMessage(ChatColor.GOLD + "Please left-click the sign with the item you wish to sell.");
         else {
             createShop();
             return;
@@ -75,15 +75,17 @@ public class ShopBuilder {
 
     private void createShop() {
         Shop shop = new Shop(type, owner.getUniqueId(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
-        ChestShops.getDataHandler().addShop(shop);
         ShopCreateEvent event = new ShopCreateEvent(owner, shop);
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);
 
-        if (!event.isCancelled()) {
-            owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
-            owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
-        }
+        if (event.isCancelled())
+            return;
+
+        ChestShops.getDataHandler().addShop(shop);
+        shop.displayItems();
+        owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
+        owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
     }
 
 

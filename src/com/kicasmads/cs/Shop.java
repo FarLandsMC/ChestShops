@@ -1,15 +1,18 @@
 package com.kicasmads.cs;
 
+import net.minecraft.server.v1_15_R1.EntityItem;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.type.WallSign;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftItem;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.util.UUID;
 
@@ -153,34 +156,34 @@ public class Shop {
     public void displayItems() {
         switch (type) {
             case BUY:
-                displayItem(chest.clone().add(0.5, 1, 0.5), buyItem);
+                displayItem(chest.clone().add(0.5, 0.875, 0.5), buyItem);
                 break;
 
             case SELL:
-                displayItem(chest.clone().add(0.5, 1, 0.5), sellItem);
+                displayItem(chest.clone().add(0.5, 0.875, 0.5), sellItem);
                 break;
 
             case BARTER: {
                 // Display it so that the buy item is on the left and the sell item is on the right
                 switch (((WallSign) sign.getBlock()).getFacing()) {
                     case NORTH:
-                        displayItem(chest.clone().add(0.8, 1, 0.5), buyItem);
-                        displayItem(chest.clone().add(0.2, 1, 0.5), sellItem);
+                        displayItem(chest.clone().add(0.8, 0.875, 0.5), buyItem);
+                        displayItem(chest.clone().add(0.2, 0.875, 0.5), sellItem);
                         break;
 
                     case SOUTH:
-                        displayItem(chest.clone().add(0.2, 1, 0.5), buyItem);
-                        displayItem(chest.clone().add(0.8, 1, 0.5), sellItem);
+                        displayItem(chest.clone().add(0.2, 0.875, 0.5), buyItem);
+                        displayItem(chest.clone().add(0.8, 0.875, 0.5), sellItem);
                         break;
 
                     case EAST:
-                        displayItem(chest.clone().add(0.5, 1, 0.2), buyItem);
-                        displayItem(chest.clone().add(0.5, 1, 0.8), sellItem);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.2), buyItem);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.8), sellItem);
                         break;
 
                     case WEST:
-                        displayItem(chest.clone().add(0.5, 1, 0.8), buyItem);
-                        displayItem(chest.clone().add(0.5, 1, 0.2), sellItem);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.8), buyItem);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.2), sellItem);
                         break;
                 }
             }
@@ -198,8 +201,10 @@ public class Shop {
         {
             // Summon a persistent, non-pickup-able item
             Item itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
+            itemEntity.setVelocity(new Vector());
+            itemEntity.setGravity(false);
             itemEntity.setItemStack(stack.clone());
-            itemEntity.setTicksLived(-32768);
+            ((EntityItem) ((CraftItem) itemEntity).getHandle()).age = -32767;
             itemEntity.setPickupDelay(32767);
         }
     }

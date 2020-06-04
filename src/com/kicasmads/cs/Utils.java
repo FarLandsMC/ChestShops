@@ -44,8 +44,7 @@ public class Utils {
     }
 
     public static ItemStack itemStackFromNBT(NBTTagCompound nbt) {
-        return nbt == null || nbt.isEmpty() ? null: CraftItemStack.asBukkitCopy(ReflectionHelper
-                .instantiate(net.minecraft.server.v1_15_R1.ItemStack.class, nbt));
+        return nbt == null || nbt.isEmpty() ? null : CraftItemStack.asBukkitCopy(net.minecraft.server.v1_15_R1.ItemStack.a(nbt));
     }
 
     public static NBTTagCompound itemStackToNBT(ItemStack stack) {

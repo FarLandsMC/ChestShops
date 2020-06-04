@@ -21,7 +21,7 @@ public class CSEventHandler implements Listener {
         Player player = event.getPlayer();
         String[] lines = event.getLines();
 
-        if (lines.length == 4 && ChestShops.SHOP_HEADER.equalsIgnoreCase(lines[0]) && event.getBlock() instanceof WallSign) {
+        if (lines.length == 4 && ChestShops.SHOP_HEADER.equalsIgnoreCase(lines[0]) && event.getBlock().getBlockData() instanceof WallSign) {
             int buyAmount, sellAmount;
 
             try {
@@ -59,11 +59,12 @@ public class CSEventHandler implements Listener {
     public void onBlockDamage(BlockDamageEvent event) {
         Player player = event.getPlayer();
 
-        if(event.getBlock() instanceof WallSign && player.getItemOnCursor().getAmount() == 0) {
+        if(event.getBlock().getBlockData() instanceof WallSign && player.getInventory().getItemInMainHand().getAmount() != 0) {
             ShopBuilder builder = ChestShops.getDataHandler().getCachedBuilder(event.getBlock().getLocation(), player);
-            if(builder != null)
-                builder.update(player.getItemOnCursor());
-            else
+            if(builder != null) {
+                builder.update(player.getInventory().getItemInMainHand().clone());
+                event.setCancelled(true);
+            } else
                 player.sendMessage(ChatColor.RED + "You cannot set the trade of a shop you do not own.");
         }
     }
