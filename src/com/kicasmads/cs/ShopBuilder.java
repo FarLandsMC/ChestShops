@@ -74,7 +74,14 @@ public class ShopBuilder {
     }
 
     private void createShop() {
-        owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
-        owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
+        Shop shop = new Shop(type, owner.getUniqueId(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
+        ShopCreateEvent event = new ShopCreateEvent(owner, shop);
+        ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
+
+        if (!event.isCancelled()) {
+            // TODO: add shop to data handler
+            owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
+            owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
+        }
     }
 }

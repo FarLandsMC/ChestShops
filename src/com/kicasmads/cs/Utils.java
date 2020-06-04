@@ -56,16 +56,15 @@ public class Utils {
     }
 
     public static Location locationFromNBT(NBTTagCompound nbt) {
-        return new Location(Bukkit.getWorld(nbt.getString("world")), nbt.getDouble("x"), nbt.getDouble("y"),
-                nbt.getDouble("z"), nbt.getFloat("yaw"), nbt.getFloat("pitch"));
+        return new Location(Bukkit.getWorld(nbt.getString("world")), nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"), 0, 0);
     }
 
     public static NBTTagCompound locationToNBT(Location location) {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setString("world", location.getWorld().getUID().toString());
-        nbt.setDouble("x", location.getX());
-        nbt.setDouble("y", location.getY());
-        nbt.setDouble("z", location.getZ());
+        nbt.setInt("x", location.getBlockX());
+        nbt.setInt("y", location.getBlockY());
+        nbt.setInt("z", location.getBlockZ());
         return nbt;
     }
 }

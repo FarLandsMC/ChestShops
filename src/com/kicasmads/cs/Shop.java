@@ -4,6 +4,9 @@ import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
+import org.bukkit.block.data.type.WallSign;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -13,15 +16,18 @@ import java.util.UUID;
 public class Shop {
     private final ShopType type;
     private final UUID owner;
+    private final Location sign;
     private final Location chest;
     private final ItemStack buyItem;
     private final ItemStack sellItem;
     private final int sellAmount;
     private final int buyAmount;
 
-    public Shop(ShopType type, UUID owner, Location chest, ItemStack buyItem, ItemStack sellItem, int buyAmount, int sellAmount) {
+    public Shop(ShopType type, UUID owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
+                int buyAmount, int sellAmount) {
         this.type = type;
         this.owner = owner;
+        this.sign = sign;
         this.chest = chest;
         this.buyItem = buyItem;
         this.sellItem = sellItem;
@@ -32,7 +38,8 @@ public class Shop {
     public Shop(NBTTagCompound tag) {
         type = ShopType.values()[tag.getInt("type")];
         owner = UUID.fromString(tag.getString("owner"));
-        chest = Utils.locationFromNBT(tag.getCompound("location"));
+        sign = Utils.locationFromNBT(tag.getCompound("signLocation"));
+        chest = Utils.locationFromNBT(tag.getCompound("chestLocation"));
         buyItem = Utils.itemStackFromNBT(tag.getCompound("buyItem"));
         sellItem = Utils.itemStackFromNBT(tag.getCompound("sellItem"));
         buyAmount = tag.getInt("buyAmount");
@@ -41,6 +48,10 @@ public class Shop {
 
     public final ShopType getType() {
         return type;
+    }
+
+    public UUID getOwner() {
+        return owner;
     }
 
     public void tryTransaction(Player player) {
@@ -139,6 +150,60 @@ public class Shop {
         }
     }
 
+    public void displayItems() {
+        switch (type) {
+            case BUY:
+                displayItem(chest.clone().add(0.5, 1, 0.5), buyItem);
+                break;
+
+            case SELL:
+                displayItem(chest.clone().add(0.5, 1, 0.5), sellItem);
+                break;
+
+            case BARTER: {
+                // Display it so that the buy item is on the left and the sell item is on the right
+                switch (((WallSign) sign.getBlock()).getFacing()) {
+                    case NORTH:
+                        displayItem(chest.clone().add(0.8, 1, 0.5), buyItem);
+                        displayItem(chest.clone().add(0.2, 1, 0.5), sellItem);
+                        break;
+
+                    case SOUTH:
+                        displayItem(chest.clone().add(0.2, 1, 0.5), buyItem);
+                        displayItem(chest.clone().add(0.8, 1, 0.5), sellItem);
+                        break;
+
+                    case EAST:
+                        displayItem(chest.clone().add(0.5, 1, 0.2), buyItem);
+                        displayItem(chest.clone().add(0.5, 1, 0.8), sellItem);
+                        break;
+
+                    case WEST:
+                        displayItem(chest.clone().add(0.5, 1, 0.8), buyItem);
+                        displayItem(chest.clone().add(0.5, 1, 0.2), sellItem);
+                        break;
+                }
+            }
+        }
+    }
+
+    private void displayItem(Location location, ItemStack stack) {
+        // Check to see if the item already exists
+        if (location.getWorld().getNearbyEntities(location, 0.2, 0.2, 0.2, entity -> {
+            if (entity instanceof Item)
+                return ((Item) entity).getItemStack().isSimilar(stack);
+
+            return false;
+        }).isEmpty())
+        {
+            // Summon a persistent, non-pickup-able item
+            Item itemEntity = (Item) location.getWorld().spawnEntity(location, EntityType.DROPPED_ITEM);
+            itemEntity.setItemStack(stack.clone());
+            itemEntity.setTicksLived(-32768);
+            itemEntity.setPickupDelay(32767);
+        }
+    }
+
     public NBTTagCompound toNbt() {
         NBTTagCompound shopTag = new NBTTagCompound();
 
@@ -151,9 +216,5 @@ public class Shop {
         shopTag.set("location", Utils.locationToNBT(chest));
 
         return shopTag;
-    }
-
-    public UUID getOwner() {
-        return owner;
     }
 }
