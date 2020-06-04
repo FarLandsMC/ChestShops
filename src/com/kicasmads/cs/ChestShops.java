@@ -60,6 +60,10 @@ public class ChestShops extends JavaPlugin {
         currencyStack = new ItemStack(currencyItem);
     }
 
+    public static DataHandler getDataHandler() {
+        return instance.dataHandler;
+    }
+
     /**
      * Logs an object to the console.
      *

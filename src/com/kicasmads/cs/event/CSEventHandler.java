@@ -1,6 +1,7 @@
 package com.kicasmads.cs.event;
 
 import com.kicasmads.cs.ChestShops;
+import com.kicasmads.cs.ShopBuilder;
 import com.kicasmads.cs.ShopType;
 import com.kicasmads.cs.Utils;
 import org.bukkit.ChatColor;
@@ -8,6 +9,7 @@ import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
 import java.util.Arrays;
@@ -48,7 +50,21 @@ public class CSEventHandler implements Listener {
                 return;
             }
 
+            ShopBuilder builder = new ShopBuilder(type, player, event.getBlock().getLocation(), buyAmount, sellAmount);
+            ChestShops.getDataHandler().cacheBuilder(event.getBlock().getLocation(), builder);
+        }
+    }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockDamage(BlockDamageEvent event) {
+        Player player = event.getPlayer();
+
+        if(event.getBlock() instanceof WallSign && player.getItemOnCursor().getAmount() == 0) {
+            ShopBuilder builder = ChestShops.getDataHandler().getCachedBuilder(event.getBlock().getLocation(), player);
+            if(builder != null)
+                builder.update(player.getItemOnCursor());
+            else
+                player.sendMessage(ChatColor.RED + "You cannot set the trade of a shop you do not own.");
         }
     }
 }

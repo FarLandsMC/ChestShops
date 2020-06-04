@@ -5,6 +5,7 @@ import net.minecraft.server.v1_15_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import net.minecraft.server.v1_15_R1.NBTTagList;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -77,5 +78,23 @@ public class DataHandler {
 			for (NBTBase nbtBase : shopList)
 				shops.add(new Shop((NBTTagCompound) nbtBase));
 		}
+	}
+
+	public void cacheBuilder(Location sign, ShopBuilder builder) {
+		builderCache.put(sign, builder);
+	}
+
+	public ShopBuilder getCachedBuilder(Location sign, Player player) {
+		ShopBuilder builder = builderCache.get(sign);
+		if(builder.isOwner(player)) return builder;
+		return null;
+	}
+
+	public void removeCachedBuilder(Location sign) {
+		builderCache.remove(sign);
+	}
+
+	public void addShop(Shop shop) {
+		shops.add(shop);
 	}
 }
