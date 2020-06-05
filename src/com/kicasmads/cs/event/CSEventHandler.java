@@ -3,13 +3,19 @@ package com.kicasmads.cs.event;
 import com.kicasmads.cs.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.block.Sign;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
@@ -22,6 +28,15 @@ public class CSEventHandler implements Listener {
         String[] lines = event.getLines();
 
         if (lines.length == 4 && ChestShops.SHOP_HEADER.equalsIgnoreCase(lines[0]) && event.getBlock().getBlockData() instanceof WallSign) {
+            // Make sure the sign is actually attached to a chest
+            Block attachedTo = event.getBlock().getRelative(((WallSign)event.getBlock().getBlockData()).getFacing().getOppositeFace());
+            if (attachedTo.getType() != Material.CHEST)
+                return;
+
+            // There's already a shop in place at the location
+            if (ChestShops.getDataHandler().getShop(attachedTo.getLocation()) != null)
+                return;
+
             int buyAmount, sellAmount;
 
             try {
@@ -50,67 +65,60 @@ public class CSEventHandler implements Listener {
                 return;
             }
 
+            // Run a few ticks later so that the sign updates correctly
             Bukkit.getScheduler().runTaskLater(ChestShops.getInstance(), () -> {
-                Sign signBlock = (Sign) event.getBlock().getState();
-                signBlock.setEditable(true);
-
-                signBlock.setLine(0, ChatColor.RED + ChestShops.SHOP_HEADER);
-                switch(type) {
-                    case SELL:
-                        signBlock.setLine(1, ChatColor.RED + "Selling: " + sellAmount);
-                        signBlock.setLine(2, ChatColor.RED + "" + sellAmount + " " + Utils.getItemName(ChestShops.getCurrencyStack()) + (sellAmount > 1 ? "s" : ""));
-                        break;
-                    case BUY:
-                        signBlock.setLine(1, ChatColor.RED + "Buying: " + buyAmount);
-
-                        signBlock.setLine(2, ChatColor.RED + "" + buyAmount + " " + Utils.getItemName(ChestShops.getCurrencyStack()) + (buyAmount > 1 ? "s" : ""));
-                        break;
-                    case BARTER:
-                        signBlock.setLine(1, ChatColor.RED + "Bartering");
-                        signBlock.setLine(2, ChatColor.RED + "" + buyAmount + " for " + sellAmount);
-                }
-                signBlock.setLine(3, ChatColor.RED + player.getDisplayName());
-                signBlock.update(true);
+                ShopBuilder builder = new ShopBuilder(type, player, event.getBlock().getLocation(),
+                        attachedTo.getLocation(), buyAmount, sellAmount);
+                ChestShops.getDataHandler().cacheBuilder(event.getBlock().getLocation(), builder);
             }, 1);
-
-            ShopBuilder builder = new ShopBuilder(type, player, event.getBlock().getLocation(), buyAmount, sellAmount);
-            ChestShops.getDataHandler().cacheBuilder(event.getBlock().getLocation(), builder);
         }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
-        event.setCancelled(signDamage(event, event.getPlayer()));
+        event.setCancelled(builderUpdate(event, event.getPlayer()));
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        event.setCancelled(signDamage(event, event.getPlayer()));
+        if (builderUpdate(event, event.getPlayer()))
+            event.setCancelled(true);
+        else if (event.getBlock().getBlockData() instanceof WallSign) {
+            Shop shop = ChestShops.getDataHandler().getShop(event.getBlock().getLocation());
+            if (shop != null) {
+                if (!shop.isOwner(event.getPlayer()) && !event.getPlayer().hasPermission("cs.shops.destroy-unowned")) {
+                    event.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to remove this shop.");
+                    event.setCancelled(true);
+                }
+
+                ShopRemoveEvent removeEvent = new ShopRemoveEvent(event.getPlayer(), shop);
+                ChestShops.getInstance().getServer().getPluginManager().callEvent(removeEvent);
+                if (!removeEvent.isCancelled()) {
+                    ChestShops.getDataHandler().removeShop(shop);
+                    event.getPlayer().sendMessage(ChatColor.GOLD + "This shop has been removed.");
+                }
+
+                event.setCancelled(removeEvent.isCancelled());
+            }
+        } else if (event.getBlock().getType() == Material.CHEST && ChestShops.getDataHandler().getShop(event.getBlock().getLocation()) != null) {
+            event.getPlayer().sendMessage(ChatColor.RED + "If you wish to remove this shop, please break the sign instead.");
+            event.setCancelled(true);
+        }
     }
 
-    private <T extends BlockEvent> boolean signDamage(T event, Player player) {
-        Shop shop = ChestShops.getDataHandler().getShop(event.getBlock().getLocation());
+    private <T extends BlockEvent> boolean builderUpdate(T event, Player player) {
+        if(event.getBlock().getBlockData() instanceof WallSign && player.getInventory().getItemInMainHand().getAmount() != 0) {
+            ShopBuilder builder = ChestShops.getDataHandler().getCachedBuilder(event.getBlock().getLocation());
 
-        if(event.getBlock().getBlockData() instanceof WallSign && player.getInventory().getItemInMainHand().getAmount() != 0 && ChestShops.getDataHandler().getCachedBuilder(event.getBlock().getLocation(), player) != null) {
-            ShopBuilder builder = ChestShops.getDataHandler().getCachedBuilder(event.getBlock().getLocation(), player);
             if (builder != null) {
-                ItemStack stack = player.getInventory().getItemInMainHand();
-                stack.setAmount(1);
-                builder.update(stack);
-                return true;
-            } else
-                player.sendMessage(ChatColor.RED + "You cannot set the trade of a shop you do not own.");
-
-        // remove the shop if the owner breaks it
-        } else if(shop != null && shop.getOwner().equals(player.getUniqueId()) && event instanceof BlockBreakEvent) {
-            ChestShops.getDataHandler().removeShop(shop);
-            player.sendMessage(ChatColor.GOLD + "You have destroyed your shop.");
-        }
-
-        // Stop anyone else from breaking the shop
-        else if(shop != null) {
-            player.sendMessage(ChatColor.RED + "You can't destroy someone else's shop.");
-            return true;
+                if (builder.isOwner(player)) {
+                    ItemStack stack = player.getInventory().getItemInMainHand().clone();
+                    stack.setAmount(1);
+                    builder.update(stack);
+                    return true;
+                } else
+                    player.sendMessage(ChatColor.RED + "You cannot set the trade of a shop you do not own.");
+            }
         }
 
         return false;
@@ -118,7 +126,57 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null && event.getClickedBlock().getBlockData() instanceof WallSign && ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation()) != null)
-            ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation()).tryTransaction(event.getPlayer());
+        Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
+        if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null &&
+                event.getClickedBlock().getBlockData() instanceof WallSign && shop != null) {
+            shop.tryTransaction(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        Shop shop = ChestShops.getDataHandler().getShop(event.getView().getTopInventory().getLocation());
+        if (shop == null)
+            return;
+
+        if (emptySlots(event.getView().getTopInventory()) > shop.getRequiredOpenSlots())
+            return;
+
+        InventoryAction action = event.getAction();
+        if (event.getClickedInventory() != null && event.getClickedInventory().equals(event.getView().getTopInventory())) {
+            if (action == InventoryAction.PLACE_ALL || action == InventoryAction.PLACE_ONE ||
+                    action == InventoryAction.PLACE_SOME || action == InventoryAction.HOTBAR_SWAP) {
+                event.setCancelled(event.getClickedInventory().getItem(event.getRawSlot()) == null);
+            }
+        } else {
+            if (action == InventoryAction.MOVE_TO_OTHER_INVENTORY)
+                event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        Shop shop = ChestShops.getDataHandler().getShop(event.getView().getTopInventory().getLocation());
+        if (shop == null)
+            return;
+
+        event.setCancelled(emptySlots(event.getView().getTopInventory()) - event.getInventorySlots().size() <= shop.getRequiredOpenSlots());
+    }
+
+    @EventHandler
+    public void onInventoryMoveItem(InventoryMoveItemEvent event) {
+        Shop shop = ChestShops.getDataHandler().getShop(event.getDestination().getLocation());
+        if (shop != null)
+            event.setCancelled(emptySlots(event.getDestination()) <= shop.getRequiredOpenSlots());
+    }
+
+    private int emptySlots(Inventory inventory) {
+        int emptyCount = 0;
+        for (ItemStack stack : inventory.getStorageContents()) {
+            if (stack == null || stack.getType() == Material.AIR)
+                ++ emptyCount;
+        }
+
+        return emptyCount;
     }
 }

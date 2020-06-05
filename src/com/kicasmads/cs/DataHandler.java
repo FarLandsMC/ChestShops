@@ -4,8 +4,9 @@ import net.minecraft.server.v1_15_R1.NBTBase;
 import net.minecraft.server.v1_15_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import net.minecraft.server.v1_15_R1.NBTTagList;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,10 +15,9 @@ import java.io.IOException;
 import java.util.*;
 
 public class DataHandler {
-
 	private final List<Shop> shops;
-	private final HashMap<Location, Shop> shopLocations;
-	private final HashMap<Location, ShopBuilder> builderCache;
+	private final Map<Location, Shop> shopLocations;
+	private final Map<Location, ShopBuilder> builderCache;
 
 	public DataHandler() {
 		shops = new ArrayList<>();
@@ -86,12 +86,15 @@ public class DataHandler {
 
 	public void cacheBuilder(Location sign, ShopBuilder builder) {
 		builderCache.put(sign, builder);
+		Bukkit.getScheduler().runTaskLater(ChestShops.getInstance(), () -> {
+			builderCache.remove(sign);
+			if (builder.getOwner().isOnline())
+				builder.getOwner().sendMessage(ChatColor.RED + "You did not create your shop fast enough! You will need to remake it.");
+		}, 2 * 60 * 20);
 	}
 
-	public ShopBuilder getCachedBuilder(Location sign, Player player) {
-		ShopBuilder builder = builderCache.get(sign);
-		if(builder != null && builder.isOwner(player)) return builder;
-		return null;
+	public ShopBuilder getCachedBuilder(Location sign) {
+		return builderCache.get(sign);
 	}
 
 	public void removeCachedBuilder(Location sign) {

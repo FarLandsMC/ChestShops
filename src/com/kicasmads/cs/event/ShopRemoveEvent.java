@@ -7,8 +7,13 @@ import org.bukkit.event.HandlerList;
 
 public class ShopRemoveEvent extends ShopEvent {
     private static final HandlerList HANDLER_LIST = new HandlerList();
+
     public ShopRemoveEvent(Player player, Shop shop) {
         super(player, shop);
+    }
+
+    public Player getRemover() {
+        return getPlayer();
     }
 
     @Override

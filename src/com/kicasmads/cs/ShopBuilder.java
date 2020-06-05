@@ -5,7 +5,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,12 +18,11 @@ public class ShopBuilder {
     protected ItemStack buyItem;
     protected ItemStack sellItem;
 
-    public ShopBuilder(ShopType type, Player owner, Location sign, int buyAmount, int sellAmount) {
+    public ShopBuilder(ShopType type, Player owner, Location sign, Location chest, int buyAmount, int sellAmount) {
         this.type = type;
         this.owner = owner;
         this.sign = sign;
-        // Extrapolate the chest location
-        this.chest = sign.getBlock().getRelative(((WallSign) sign.getBlock().getBlockData()).getFacing().getOppositeFace()).getLocation();
+        this.chest = chest;
         this.buyAmount = buyAmount;
         this.sellAmount = sellAmount;
         this.buyItem = null;
@@ -39,6 +37,7 @@ public class ShopBuilder {
                 break;
         }
 
+        formatSign(true);
         prompt();
     }
 
@@ -80,7 +79,7 @@ public class ShopBuilder {
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);
 
-        formatSign();
+        formatSign(false);
 
         if (event.isCancelled())
             return;
@@ -91,25 +90,31 @@ public class ShopBuilder {
         owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
     }
 
-    private void formatSign() {
+    private void formatSign(boolean red) {
         Sign signBlock = (Sign) sign.getBlock().getState();
 
-        signBlock.setLine(0, ChatColor.BOLD + ChestShops.SHOP_HEADER);
+        signBlock.setLine(0, (red ? ChatColor.RED.toString() : "") + ChatColor.BOLD + ChestShops.SHOP_HEADER);
         switch(type) {
             case SELL:
-                signBlock.setLine(1, "Selling: " + ChatColor.BOLD + buyAmount);
-                signBlock.setLine(2, ChatColor.GREEN + "" + buyAmount + " " + Utils.getItemName(buyItem) + (buyAmount > 1 ? "s" : ""));
+                signBlock.setLine(1, (red ? ChatColor.RED : "") + "Selling: " + (red ? ChatColor.BOLD : "") + sellAmount);
+                signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + buyAmount + " " +
+                        Utils.getItemName(buyItem) + (buyAmount > 1 ? "s" : ""));
                 break;
             case BUY:
-                signBlock.setLine(1, "Buying: " + ChatColor.BOLD + sellAmount);
-                signBlock.setLine(2, ChatColor.GREEN + "" + sellAmount + " " + Utils.getItemName(sellItem) + (sellAmount > 1 ? "s" : ""));
+                signBlock.setLine(1, (red ? ChatColor.RED : "") + "Buying: " + (red ? ChatColor.BOLD : "") + buyAmount);
+                signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + sellAmount + " " +
+                        Utils.getItemName(sellItem) + (sellAmount > 1 ? "s" : ""));
                 break;
             case BARTER:
-                signBlock.setLine(1, "Bartering");
-                signBlock.setLine(2, ChatColor.GREEN + "" + buyAmount + " for " + sellAmount);
+                signBlock.setLine(1, (red ? ChatColor.RED : "") + "Bartering");
+                signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + buyAmount + " for " + sellAmount);
         }
-        signBlock.setLine(3, owner.getDisplayName());
+        signBlock.setLine(3, (red ? ChatColor.RED : "") + owner.getDisplayName());
         signBlock.update();
+    }
+
+    public Player getOwner() {
+        return owner;
     }
 
     public boolean isOwner(Player player) {

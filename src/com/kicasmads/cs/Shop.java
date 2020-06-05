@@ -55,30 +55,35 @@ public class Shop {
         return type;
     }
 
-    public UUID getOwner() {
-        return owner;
+    public boolean isOwner(Player player) {
+        return owner.equals(player.getUniqueId());
+    }
+
+    public int getRequiredOpenSlots() {
+        return (int) Math.ceil(((double) buyAmount) / sellAmount);
     }
 
     public void tryTransaction(Player player) {
         Chest shopChest = (Chest) chest.getBlock().getState();
-        Inventory inv = shopChest.getBlockInventory();
+        Inventory chestinventory = shopChest.getBlockInventory();
 
         // Make sure shop can pay out
-        if(!inv.containsAtLeast(sellItem, sellAmount)) {
+        if(!chestinventory.containsAtLeast(sellItem, sellAmount)) {
             player.sendMessage(ChatColor.RED + "This shop is out of stock. Come back later.");
             return;
         }
 
-        if(inv.firstEmpty() == -1) {
+        if(chestinventory.firstEmpty() == -1) {
             player.sendMessage(ChatColor.RED + "Chest is full and cannot accept any more transactions");
             return;
         }
 
-        Inventory playerInv = player.getInventory();
+        Inventory playerInventory = player.getInventory();
 
         // Make sure player can pay
-        if(!playerInv.containsAtLeast(buyItem, buyAmount)) {
-            player.sendMessage(ChatColor.RED + "You need " + buyItem.getAmount() + " " + buyItem.toString() + " in order to buy this.");
+        if(!playerInventory.containsAtLeast(buyItem, buyAmount)) {
+            player.sendMessage(ChatColor.RED + "You need " + buyItem.getAmount() + " " + Utils.getItemName(buyItem) +
+                    " in order to buy this.");
             return;
         }
 
@@ -86,7 +91,7 @@ public class Shop {
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
 
         if(!event.isCancelled()) {
-            removePlayerCost(playerInv);
+            removePlayerCost(playerInventory);
             removeSellItems();
             givePlayerItems(player);
             putBuyItems();
@@ -202,23 +207,23 @@ public class Shop {
                 // Display it so that the buy item is on the left and the sell item is on the right
                 switch (((WallSign) sign.getBlock().getBlockData()).getFacing()) {
                     case NORTH:
-                        displayItem(chest.clone().add(0.8, 0.875, 0.5), buyItem, true);
-                        displayItem(chest.clone().add(0.2, 0.875, 0.5), sellItem, false);
+                        displayItem(chest.clone().add(0.75, 0.875, 0.5), buyItem, true);
+                        displayItem(chest.clone().add(0.25, 0.875, 0.5), sellItem, false);
                         break;
 
                     case SOUTH:
-                        displayItem(chest.clone().add(0.2, 0.875, 0.5), buyItem, true);
-                        displayItem(chest.clone().add(0.8, 0.875, 0.5), sellItem, false);
+                        displayItem(chest.clone().add(0.25, 0.875, 0.5), buyItem, true);
+                        displayItem(chest.clone().add(0.75, 0.875, 0.5), sellItem, false);
                         break;
 
                     case EAST:
-                        displayItem(chest.clone().add(0.5, 0.875, 0.2), buyItem, true);
-                        displayItem(chest.clone().add(0.5, 0.875, 0.8), sellItem, false);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.25), buyItem, true);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.75), sellItem, false);
                         break;
 
                     case WEST:
-                        displayItem(chest.clone().add(0.5, 0.875, 0.8), buyItem, true);
-                        displayItem(chest.clone().add(0.5, 0.875, 0.2), sellItem, false);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.75), buyItem, true);
+                        displayItem(chest.clone().add(0.5, 0.875, 0.25), sellItem, false);
                         break;
                 }
             }
@@ -242,9 +247,7 @@ public class Shop {
                     if(isBuy) buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
                     else sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
             }
-
         }
-
     }
 
     public void removeDisplayItems() {
