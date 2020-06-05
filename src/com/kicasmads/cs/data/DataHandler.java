@@ -1,5 +1,6 @@
-package com.kicasmads.cs;
+package com.kicasmads.cs.data;
 
+import com.kicasmads.cs.ChestShops;
 import net.minecraft.server.v1_15_R1.NBTBase;
 import net.minecraft.server.v1_15_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
@@ -7,12 +8,14 @@ import net.minecraft.server.v1_15_R1.NBTTagList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DataHandler {
 	private final List<Shop> shops;
@@ -25,6 +28,38 @@ public class DataHandler {
 		builderCache = new HashMap<>();
 	}
 
+	public ShopBuilder getCachedBuilder(Location sign) {
+		return builderCache.get(sign);
+	}
+
+	public void removeCachedBuilder(Location sign) {
+		builderCache.remove(sign);
+	}
+
+	public void addShop(Shop shop, Location chestLocation, Location signLocation) {
+		shops.add(shop);
+		shopLocations.put(chestLocation, shop);
+		shopLocations.put(signLocation, shop);
+	}
+
+	public void removeShop(Shop shop) {
+		shops.remove(shop);
+		shopLocations.remove(shop.getChestLocation());
+		shopLocations.remove(shop.getSignLocation());
+		shop.removeDisplayItems();
+	}
+
+	public Shop getShop(Location location) {
+		return shopLocations.get(location);
+	}
+
+	public List<Shop> getShops(Player player) {
+		return shops.stream().filter(shop -> shop.isOwner(player)).collect(Collectors.toList());
+	}
+
+	public List<Shop> getAllShops() {
+		return shops;
+	}
 
 	public static void initNbt(String file) {
 		File f = new File(ChestShops.getInstance().getDataFolder(), file);
@@ -91,30 +126,5 @@ public class DataHandler {
 			if (builder.getOwner().isOnline())
 				builder.getOwner().sendMessage(ChatColor.RED + "You did not create your shop fast enough! You will need to remake it.");
 		}, 2 * 60 * 20);
-	}
-
-	public ShopBuilder getCachedBuilder(Location sign) {
-		return builderCache.get(sign);
-	}
-
-	public void removeCachedBuilder(Location sign) {
-		builderCache.remove(sign);
-	}
-
-	public void addShop(Shop shop, Location chestLocation, Location signLocation) {
-		shops.add(shop);
-		shopLocations.put(chestLocation, shop);
-		shopLocations.put(signLocation, shop);
-	}
-
-	public void removeShop(Shop shop) {
-		shops.remove(shop);
-		shopLocations.remove(shop.getChestLocation());
-		shopLocations.remove(shop.getSignLocation());
-		shop.removeDisplayItems();
-	}
-
-	public Shop getShop(Location location) {
-		return shopLocations.get(location);
 	}
 }

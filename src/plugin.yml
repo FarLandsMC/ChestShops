@@ -4,6 +4,10 @@ name: ChestShops
 description: A simple plugin for chest shops
 authors: [Kishiko73, maddymakesgames, xCassyx]
 version: 1.0
+commands:
+  shops:
+    description: View your shops or everyone's shops
+    usage: /shops [everyone]
 permissions:
   cs.shops.destroy-unowned:
     description: Allows a player to destroy a shop they don't own

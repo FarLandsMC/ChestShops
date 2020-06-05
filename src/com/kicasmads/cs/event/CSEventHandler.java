@@ -1,6 +1,10 @@
 package com.kicasmads.cs.event;
 
 import com.kicasmads.cs.*;
+import com.kicasmads.cs.Utils;
+import com.kicasmads.cs.data.Shop;
+import com.kicasmads.cs.data.ShopBuilder;
+import com.kicasmads.cs.data.ShopType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

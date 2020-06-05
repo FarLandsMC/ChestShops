@@ -16,6 +16,8 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class Utils {
+    public static final Runnable NO_ACTION = () -> {};
+
     /**
      * Un-formats the given name according to how it was formatted in the formattedName method of this class, and get
      * the enumeration value corresponding to that name. If an enumeration constant could not be found with the

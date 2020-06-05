@@ -1,5 +1,7 @@
-package com.kicasmads.cs;
+package com.kicasmads.cs.data;
 
+import com.kicasmads.cs.ChestShops;
+import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopCreateEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

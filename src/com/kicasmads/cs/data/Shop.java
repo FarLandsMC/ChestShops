@@ -1,5 +1,7 @@
-package com.kicasmads.cs;
+package com.kicasmads.cs.data;
 
+import com.kicasmads.cs.ChestShops;
+import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopTransactionEvent;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.Bukkit;
@@ -55,8 +57,28 @@ public class Shop {
         return type;
     }
 
+    public UUID getOwner() {
+        return owner;
+    }
+
     public boolean isOwner(Player player) {
         return owner.equals(player.getUniqueId());
+    }
+
+    public ItemStack getBuyItem() {
+        return buyItem;
+    }
+
+    public ItemStack getSellItem() {
+        return sellItem;
+    }
+
+    public int getBuyAmount() {
+        return buyAmount;
+    }
+
+    public int getSellAmount() {
+        return sellAmount;
     }
 
     public int getRequiredOpenSlots() {
