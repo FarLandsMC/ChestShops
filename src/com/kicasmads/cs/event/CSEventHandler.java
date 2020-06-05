@@ -130,10 +130,12 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
-        if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null &&
-                event.getClickedBlock().getBlockData() instanceof WallSign && shop != null) {
-            shop.tryTransaction(event.getPlayer());
+        if (event.getClickedBlock() != null) {
+            Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
+            if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null &&
+                    event.getClickedBlock().getBlockData() instanceof WallSign && shop != null) {
+                shop.tryTransaction(event.getPlayer());
+            }
         }
     }
 
