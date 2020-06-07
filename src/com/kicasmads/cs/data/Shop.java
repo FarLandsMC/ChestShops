@@ -82,7 +82,17 @@ public class Shop {
     }
 
     public int getRequiredOpenSlots() {
-        return (int) Math.ceil(((double) buyAmount) / sellAmount);
+        double changeOnTransaction = ((double) buyAmount) / buyItem.getMaxStackSize() -
+                ((double) sellAmount) / sellItem.getMaxStackSize();
+
+        // The number of items in the chest decreases when a transaction occurs
+        if (changeOnTransaction <= 0)
+            return 1;
+        else {
+            Inventory chestinventory = ((Chest) chest.getBlock().getState()).getBlockInventory();
+            return chestinventory.getSize() - (int) ((((double) chestinventory.getSize()) * sellAmount * buyItem.getMaxStackSize()) /
+                    (buyAmount * sellItem.getMaxStackSize()));
+        }
     }
 
     public void tryTransaction(Player player) {
@@ -95,7 +105,7 @@ public class Shop {
             return;
         }
 
-        if(chestinventory.firstEmpty() == -1) {
+        if(chestinventory.firstEmpty() == -1 && Utils.firstInsertableStack(chestinventory, buyItem) == -1) {
             player.sendMessage(ChatColor.RED + "Chest is full and cannot accept any more transactions");
             return;
         }
@@ -207,7 +217,6 @@ public class Shop {
             } else {
                 ItemStack stack = chestInv.getItem(Utils.firstInsertableStack(chestInv, buyItem));
                 int ogAmount = stack.getAmount();
-
 
                 stack.setAmount(Math.min(stack.getAmount() + (buyAmount - numGiven), buyItem.getMaxStackSize()));
                 numGiven += stack.getAmount() - ogAmount;
