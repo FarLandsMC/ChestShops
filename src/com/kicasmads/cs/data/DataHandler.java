@@ -1,10 +1,12 @@
 package com.kicasmads.cs.data;
 
 import com.kicasmads.cs.ChestShops;
+
 import net.minecraft.server.v1_16_R1.NBTBase;
 import net.minecraft.server.v1_16_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_16_R1.NBTTagCompound;
 import net.minecraft.server.v1_16_R1.NBTTagList;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -50,6 +52,8 @@ public class DataHandler {
 	}
 
 	public Shop getShop(Location location) {
+		if (location == null)
+			return null;
 		return shopLocations.get(location);
 	}
 

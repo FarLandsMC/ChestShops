@@ -5,8 +5,11 @@ import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopBuilder;
 import com.kicasmads.cs.data.ShopType;
+
+import net.minecraft.server.v1_16_R1.InventoryEnderChest;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.WallSign;
@@ -19,6 +22,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -130,10 +134,9 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getClickedBlock() != null) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
             Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
-            if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null &&
-                    event.getClickedBlock().getBlockData() instanceof WallSign && shop != null) {
+            if (shop != null && event.getClickedBlock().getBlockData() instanceof WallSign) {
                 shop.tryTransaction(event.getPlayer());
             }
         }
@@ -141,6 +144,10 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getView().getTopInventory() instanceof BlockInventoryHolder) ||
+                event.getView().getTopInventory() instanceof InventoryEnderChest)
+            return;
+
         Shop shop = ChestShops.getDataHandler().getShop(event.getView().getTopInventory().getLocation());
         if (shop == null)
             return;
@@ -162,6 +169,10 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory() instanceof BlockInventoryHolder) ||
+                event.getView().getTopInventory() instanceof InventoryEnderChest)
+            return;
+
         Shop shop = ChestShops.getDataHandler().getShop(event.getView().getTopInventory().getLocation());
         if (shop == null)
             return;

@@ -3,12 +3,12 @@ package com.kicasmads.cs.gui;
 import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.Utils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;

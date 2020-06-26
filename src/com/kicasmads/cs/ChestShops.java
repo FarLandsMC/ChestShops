@@ -5,6 +5,7 @@ import com.kicasmads.cs.event.CSEventHandler;
 import com.kicasmads.cs.gui.GuiGlobalView;
 import com.kicasmads.cs.gui.GuiHandler;
 import com.kicasmads.cs.gui.GuiPersonalView;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

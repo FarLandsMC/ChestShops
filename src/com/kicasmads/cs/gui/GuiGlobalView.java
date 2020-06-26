@@ -2,6 +2,7 @@ package com.kicasmads.cs.gui;
 
 import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.data.Shop;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
