@@ -24,6 +24,6 @@ public class GuiPersonalView extends Gui {
 
     @Override
     protected void populateInventory() {
-        displayShops(shops, true, page, 54, this::changePage);
+        displayShops(shops, true, page, 54, this::changePage, null);
     }
 }

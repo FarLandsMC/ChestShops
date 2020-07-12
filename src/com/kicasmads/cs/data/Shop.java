@@ -15,6 +15,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.UUID;
 
@@ -97,7 +98,13 @@ public class Shop {
         }
     }
 
-    public void tryTransaction(Player player) {
+    public boolean isEmpty() {
+        Chest shopChest = (Chest) chest.getBlock().getState();
+        Inventory chestinventory = shopChest.getBlockInventory();
+        return chestinventory.first(sellItem) < 0;
+    }
+
+    public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
         Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory chestinventory = shopChest.getBlockInventory();
 
@@ -112,12 +119,18 @@ public class Shop {
             return;
         }
 
-        Inventory playerInventory = player.getInventory();
+        PlayerInventory playerInventory = player.getInventory();
 
         // Make sure player can pay
         if(!playerInventory.containsAtLeast(buyItem, buyAmount)) {
             player.sendMessage(ChatColor.RED + "You need " + buyItem.getAmount() + " " + Utils.getItemName(buyItem) +
                     " in order to buy this.");
+            return;
+        }
+
+        // The player must be holding the buy item
+        if (requireHoldingBuyItem && !playerInventory.getItemInMainHand().isSimilar(buyItem)) {
+            player.sendMessage(ChatColor.RED + "You must be holding item this shop requires from you.");
             return;
         }
 

@@ -59,37 +59,46 @@ public abstract class Gui {
         inv.setItem(slot, stack);
     }
 
-    protected void displayShop(int slot, Shop shop, boolean showTransaction) {
+    protected void displayShop(int slot, Shop shop, boolean showTransaction, Consumer<Shop> shopAction) {
         String name = ChatColor.RESET.toString() + shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
                 " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem());
 
         // Display what it's buying and selling
+        Runnable action = shopAction == null ? Utils.NO_ACTION : () -> shopAction.accept(shop);
         if (showTransaction) {
-            addLabel(
-                    slot, Material.CHEST, name,
+            addActionItem(
+                    slot, Material.CHEST, name, action,
                     "Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem()),
                     "Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem())
             );
         }
         // Display the location
         else {
-            addLabel(
-                    slot, Material.CHEST, name,
+            addActionItem(
+                    slot, Material.CHEST, name, action,
                     "At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
                             shop.getChestLocation().getBlockZ()
             );
         }
     }
 
-    protected void displayShops(List<Shop> shops, boolean showTransaction, int page, int pageCut, Consumer<Integer> pageChanger) {
+    protected void displayShops(
+            List<Shop> shops,
+            boolean showTransaction,
+            int page,
+            int pageCut,
+            Consumer<Integer> pageChanger,
+            Consumer<Shop> shopAction
+    ) {
         if (shops.size() <= pageCut) {
             int slot = 0;
             for (Shop shop : shops) {
-                displayShop(slot, shop, showTransaction);
+                displayShop(slot, shop, showTransaction, shopAction);
+                ++ slot;
             }
         } else {
             for (int i = page * 45;i < Math.min((page + 1) * 45, shops.size());++ i) {
-                displayShop(i, shops.get(i), showTransaction);
+                displayShop(i, shops.get(i), showTransaction, shopAction);
             }
 
             if (page == 0)

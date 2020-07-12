@@ -137,7 +137,7 @@ public class CSEventHandler implements Listener {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
             Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
             if (shop != null && event.getClickedBlock().getBlockData() instanceof WallSign) {
-                shop.tryTransaction(event.getPlayer());
+                shop.tryTransaction(event.getPlayer(), true);
             }
         }
     }

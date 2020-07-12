@@ -26,16 +26,15 @@ public class GuiGlobalView extends Gui {
         this.ownersPage = 0;
         this.shopsPage = 0;
 
-        ChestShops.getDataHandler().getAllShops().forEach(shop -> {
+        ChestShops.getDataHandler().getAllShops().stream().filter(shop -> !shop.isEmpty()).forEach(shop -> {
             List<Shop> shops = allShops.get(shop.getOwner());
             if (shops == null) {
                 shops = new ArrayList<>();
                 shops.add(shop);
                 allShops.put(shop.getOwner(), shops);
+                shopOwners.add(shop.getOwner());
             } else
                 shops.add(shop);
-
-            shopOwners.add(shop.getOwner());
         });
 
         // Sort by username
@@ -49,7 +48,7 @@ public class GuiGlobalView extends Gui {
 
     private void changeShopsPage(int move) {
         shopsPage += move;
-        newInventory(54, currentViewedOwner.getName() + "\'s Shops");
+        newInventory(54, currentViewedOwner.getName() + "'s Shops");
     }
 
     @Override
@@ -77,7 +76,14 @@ public class GuiGlobalView extends Gui {
                     addActionItem(53, Material.EMERALD_BLOCK, ChatColor.GREEN + "Next Page", () -> changeOwnersPage(1));
             }
         } else {
-            displayShops(allShops.get(currentViewedOwner.getUniqueId()), false, shopsPage, 45, this::changeShopsPage);
+            displayShops(
+                    allShops.get(currentViewedOwner.getUniqueId()),
+                    false,
+                    shopsPage,
+                    45,
+                    this::changeShopsPage,
+                    shop -> shop.tryTransaction(user, false)
+            );
             addActionItem(49, Material.NETHER_STAR, ChatColor.RESET + "Back", this::displayOwners);
         }
     }
@@ -90,7 +96,7 @@ public class GuiGlobalView extends Gui {
     private void displayShops(OfflinePlayer owner) {
         currentViewedOwner = owner;
         shopsPage = 0;
-        newInventory(54, owner.getName() + "\'s Shops");
+        newInventory(54, owner.getName() + "'s Shops");
     }
 
     private void displayOwner(int slot, UUID owner) {
