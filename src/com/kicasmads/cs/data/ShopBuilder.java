@@ -112,7 +112,7 @@ public class ShopBuilder {
                 signBlock.setLine(1, (red ? ChatColor.RED : "") + "Bartering");
                 signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + buyAmount + " for " + sellAmount);
         }
-        signBlock.setLine(3, (red ? ChatColor.RED : "") + owner.getDisplayName());
+        signBlock.setLine(3, (red ? ChatColor.RED : "") + owner.getName());
         signBlock.update();
     }
 

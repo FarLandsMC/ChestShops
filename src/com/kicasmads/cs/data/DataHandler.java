@@ -126,8 +126,7 @@ public class DataHandler {
 	public void cacheBuilder(Location sign, ShopBuilder builder) {
 		builderCache.put(sign, builder);
 		Bukkit.getScheduler().runTaskLater(ChestShops.getInstance(), () -> {
-			builderCache.remove(sign);
-			if (builder.getOwner().isOnline())
+			if (builderCache.remove(sign) != null && builder.getOwner().isOnline())
 				builder.getOwner().sendMessage(ChatColor.RED + "You did not create your shop fast enough! You will need to remake it.");
 		}, 2 * 60 * 20);
 	}
