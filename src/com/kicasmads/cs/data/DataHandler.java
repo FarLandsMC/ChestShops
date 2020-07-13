@@ -68,9 +68,10 @@ public class DataHandler {
 	public static void initNbt(String file) {
 		File f = new File(ChestShops.getInstance().getDataFolder(), file);
 
-		if(!f.exists()) {
+		if (!f.exists()) {
 			try {
-				if(!f.createNewFile()) throw new RuntimeException("Failed to create " + file + ". Did you give the process access to the file system?");
+				if (!f.createNewFile())
+					throw new RuntimeException("Failed to create " + file + ". Did you give the process access to the file system?");
 				NBTCompressedStreamTools.a(new NBTTagCompound(), new FileOutputStream(f));
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to create " + file + ". Did you give the process access to the file system?", e);
@@ -78,9 +79,9 @@ public class DataHandler {
 		}
 	}
 
-	public void save(String file) {
-		initNbt(file);
-		File f = new File(ChestShops.getInstance().getDataFolder(), file);
+	public void save(String fileName) {
+		initNbt(fileName);
+		File file = new File(ChestShops.getInstance().getDataFolder(), fileName);
 
 		NBTTagList shopList = new NBTTagList();
 
@@ -91,34 +92,32 @@ public class DataHandler {
 		root.set("shops", shopList);
 
 		try {
-			NBTCompressedStreamTools.a(root, new FileOutputStream(f));
-		}
-		catch (IOException e) {
-			throw new RuntimeException("Failed to write " + file + ". Did you give the process access to the file system?", e);
+			NBTCompressedStreamTools.a(root, new FileOutputStream(file));
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to write " + fileName + ". Did you give the process access to the file system?", e);
 		}
 	}
 
-	public void load(String file) {
-		initNbt(file);
-		File f = new File(ChestShops.getInstance().getDataFolder().getAbsolutePath(), file);
+	public void load(String fileName) {
+		initNbt(fileName);
+		File file = new File(ChestShops.getInstance().getDataFolder().getAbsolutePath(), fileName);
 
 		NBTTagCompound root;
 
 		try {
-			root = NBTCompressedStreamTools.a(new FileInputStream(f));
-		}
-		catch (IOException e) {
-			throw new RuntimeException("Failed to read " + file + ". Did you give the process access to the file system?", e);
+			root = NBTCompressedStreamTools.a(new FileInputStream(file));
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to read " + fileName + ". Did you give the process access to the file system?", e);
 		}
 
-		if(root.hasKey("shops")) {
+		if (root.hasKey("shops")) {
 			NBTTagList shopList = root.getList("shops", 10);
 
 			for (NBTBase nbtBase : shopList) {
-				Shop s = new Shop((NBTTagCompound) nbtBase);
-				shops.add(s);
-				shopLocations.put(s.getSignLocation(), s);
-				shopLocations.put(s.getChestLocation(), s);
+				Shop shop = new Shop((NBTTagCompound) nbtBase);
+				shops.add(shop);
+				shopLocations.put(shop.getSignLocation(), shop);
+				shopLocations.put(shop.getChestLocation(), shop);
 			}
 		}
 	}

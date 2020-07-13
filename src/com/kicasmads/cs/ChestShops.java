@@ -46,33 +46,36 @@ public class ChestShops extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        initConfig();
-        dataHandler.load("shops.nbt");
-        Bukkit.getPluginManager().registerEvents(guiHandler, this);
-        Bukkit.getPluginManager().registerEvents(new CSEventHandler(), this);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            initConfig();
+            dataHandler.load("shops.nbt");
+            Bukkit.getPluginManager().registerEvents(guiHandler, this);
+            Bukkit.getPluginManager().registerEvents(new CSEventHandler(), this);
 
-        PluginCommand shopsCommand = getCommand("shops");
-        shopsCommand.setExecutor((sender, command, alias, args) -> {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
+            PluginCommand shopsCommand = getCommand("shops");
+            shopsCommand.setExecutor((sender, command, alias, args) -> {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
+                    return true;
+                }
+                Player player = (Player) sender;
+
+                boolean selfView = (args.length == 0 || !"everyone".equals(args[0])) && !ChestShops.getDataHandler().getShops(player).isEmpty();
+                if (selfView)
+                    (new GuiPersonalView(player)).openGui(player);
+                else
+                    (new GuiGlobalView()).openGui(player);
+
                 return true;
-            }
-            Player player = (Player) sender;
+            });
+            shopsCommand.setTabCompleter(
+                    (sender, command, alias, args) ->
+                            args.length == 1
+                                    ? Collections.singletonList("everyone")
+                                    : Collections.emptyList()
+            );
+        }, 1);
 
-            boolean selfView = (args.length == 0 || !"everyone".equals(args[0])) && !ChestShops.getDataHandler().getShops(player).isEmpty();
-            if (selfView)
-                (new GuiPersonalView(player)).openGui(player);
-            else
-                (new GuiGlobalView()).openGui(player);
-
-            return true;
-        });
-        shopsCommand.setTabCompleter(
-                (sender, command, alias, args) ->
-                args.length == 1
-                ? Collections.singletonList("everyone")
-                : Collections.emptyList()
-        );
     }
 
     @Override

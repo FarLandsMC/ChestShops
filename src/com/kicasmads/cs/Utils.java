@@ -77,7 +77,7 @@ public class Utils {
     }
 
     public static Item summonStaticItem(Location location, ItemStack item) {
-        Item itemEntity = (Item) location.getWorld().dropItem(location, item);
+        Item itemEntity = location.getWorld().dropItem(location, item);
         itemEntity.setVelocity(new Vector());
         itemEntity.setGravity(false);
         ((EntityItem) ((CraftItem) itemEntity).getHandle()).age = -32768;
@@ -88,14 +88,17 @@ public class Utils {
     public static int firstInsertableStack(Inventory inv, ItemStack stack) {
         int firstStack = inv.first(stack.getType());
 
-        if(firstStack == -1) return -1;
-        if(inv.getItem(firstStack).getAmount() != stack.getMaxStackSize()) return firstStack;
+        if (firstStack == -1)
+            return -1;
+        if (inv.getItem(firstStack).getAmount() != stack.getMaxStackSize())
+            return firstStack;
 
         ItemStack[] invContents = inv.getStorageContents();
 
-        for(int i = firstStack; i < invContents.length; i++) {
+        for (int i = firstStack; i < invContents.length; i++) {
             ItemStack currStack = invContents[i];
-            if(currStack != null && currStack.getType().equals(stack.getType()) && currStack.getAmount() != currStack.getMaxStackSize()) return i;
+            if (currStack != null && currStack.getType().equals(stack.getType()) && currStack.getAmount() != currStack.getMaxStackSize())
+                return i;
         }
         return -1;
     }
@@ -108,11 +111,10 @@ public class Utils {
         StringBuilder builder = new StringBuilder(str.length());
         boolean nextUpperCase = true;
 
-        for(char c : str.toCharArray()) {
-            if(Character.isSpaceChar(c)) {
+        for (char c : str.toCharArray()) {
+            if (Character.isSpaceChar(c)) {
                 nextUpperCase = true;
-            }
-            else if(nextUpperCase) {
+            } else if (nextUpperCase) {
                 c = Character.toUpperCase(c);
                 nextUpperCase = false;
             } else {
