@@ -13,28 +13,28 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.*;
 
 public class GuiGlobalView extends Gui {
-    private final Map<UUID, List<Shop>> allShops;
+    private final Map<UUID, List<Shop>> ownerGroupedShops;
     private final List<UUID> shopOwners;
     private OfflinePlayer currentViewedOwner;
     private int ownersPage, shopsPage;
 
     public GuiGlobalView() {
         super(54, "Shop Owners");
-        this.allShops = new HashMap<>();
+        this.ownerGroupedShops = new HashMap<>();
         this.shopOwners = new ArrayList<>();
         this.currentViewedOwner = null;
         this.ownersPage = 0;
         this.shopsPage = 0;
 
         ChestShops.getDataHandler().getAllShops().stream().filter(shop -> !shop.isEmpty()).forEach(shop -> {
-            List<Shop> shops = allShops.get(shop.getOwner());
-            if (shops == null) {
-                shops = new ArrayList<>();
-                shops.add(shop);
-                allShops.put(shop.getOwner(), shops);
+            List<Shop> ownerShops = ownerGroupedShops.get(shop.getOwner());
+            if (ownerShops == null) {
+                ownerShops = new ArrayList<>();
+                ownerShops.add(shop);
+                ownerGroupedShops.put(shop.getOwner(), ownerShops);
                 shopOwners.add(shop.getOwner());
             } else
-                shops.add(shop);
+                ownerShops.add(shop);
         });
 
         // Sort by username
@@ -77,7 +77,7 @@ public class GuiGlobalView extends Gui {
             }
         } else {
             displayShops(
-                    allShops.get(currentViewedOwner.getUniqueId()),
+                    ownerGroupedShops.get(currentViewedOwner.getUniqueId()),
                     false,
                     shopsPage,
                     45,
@@ -105,7 +105,7 @@ public class GuiGlobalView extends Gui {
         OfflinePlayer player = Bukkit.getOfflinePlayer(owner);
         meta.setOwningPlayer(player);
         meta.setDisplayName(ChatColor.RESET + player.getName());
-        meta.setLore(Collections.singletonList("Shops: " + allShops.get(owner).size()));
+        meta.setLore(Collections.singletonList("Shops: " + ownerGroupedShops.get(owner).size()));
         head.setItemMeta(meta);
         addActionItem(slot, head, () -> displayShops(player));
     }

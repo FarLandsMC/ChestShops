@@ -114,7 +114,14 @@ public class DataHandler {
 			NBTTagList shopList = root.getList("shops", 10);
 
 			for (NBTBase nbtBase : shopList) {
-				Shop shop = new Shop((NBTTagCompound) nbtBase);
+				Shop shop;
+				try {
+					shop = new Shop((NBTTagCompound) nbtBase);
+				} catch (Throwable ex) {
+					ChestShops.error("Failed to load shop: " + ex);
+					ex.printStackTrace();
+					continue;
+				}
 				shops.add(shop);
 				shopLocations.put(shop.getSignLocation(), shop);
 				shopLocations.put(shop.getChestLocation(), shop);
