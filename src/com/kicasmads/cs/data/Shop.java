@@ -187,41 +187,18 @@ public class Shop {
     private void givePlayerItems(Player player) {
         Inventory playerInv = player.getInventory();
         int numGiven = 0;
+        while (numGiven < sellAmount) {
+            int amount = Math.min(sellAmount - numGiven, sellItem.getMaxStackSize());
+            numGiven += amount;
+            ItemStack stack = sellItem.clone();
+            stack.setAmount(amount);
 
-        // Loop until we have no more left to give or we can't insert any more items
-        while (numGiven < sellAmount && (playerInv.firstEmpty() != -1 || Utils.firstInsertableStack(playerInv, sellItem) != -1)) {
-            // See if we can insert into an already existing stack
-            if (Utils.firstInsertableStack(playerInv, sellItem) == -1 || sellItem.getMaxStackSize() == 1) {
-                ItemStack[] contents = playerInv.getStorageContents();
-                ItemStack giveItem = sellItem.clone();
-                // Set the stack size to either the max stack or the amount we have left to give
-                giveItem.setAmount(Math.min(sellAmount - numGiven, sellItem.getMaxStackSize()));
-                numGiven += giveItem.getAmount();
-                // Insert the new stack into the player's inventory
-                contents[playerInv.firstEmpty()] = giveItem;
-                playerInv.setContents(contents);
-            } else if (sellItem.getMaxStackSize() != 1) {
-                ItemStack stack = playerInv.getItem(Utils.firstInsertableStack(playerInv, sellItem));
-                int ogAmount = stack.getAmount();
-
-                // Set the stack to either the amount we have left + the current amount or the max size
-                stack.setAmount(Math.min(stack.getAmount() + (sellAmount - numGiven), sellItem.getMaxStackSize()));
-                // Only count items we added, not ones that were already there
-                numGiven += stack.getAmount() - ogAmount;
+            if (playerInv.firstEmpty() > -1)
+                playerInv.addItem(stack);
+            else {
+                player.getWorld().dropItem(player.getLocation(), stack);
+                player.sendMessage(ChatColor.RED + "Your inventory was full, so you dropped the item.");
             }
-        }
-
-        // Drop any extra items
-        if (numGiven < sellAmount) {
-            int amountToDrop = sellAmount - numGiven;
-            while (amountToDrop > 0) {
-                ItemStack dropStack = sellItem.clone();
-                dropStack.setAmount(Math.min(amountToDrop, dropStack.getMaxStackSize()));
-                amountToDrop -= dropStack.getAmount();
-                player.getWorld().dropItem(player.getLocation(), dropStack);
-
-            }
-            player.sendMessage(ChatColor.GREEN + "Your inventory was full so the items you bought was dropped on the floor.");
         }
     }
 
