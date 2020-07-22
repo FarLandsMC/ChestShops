@@ -111,7 +111,7 @@ public class Shop {
     public boolean isEmpty() {
         Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory chestinventory = shopChest.getInventory();
-        return chestinventory.first(sellItem) < 0;
+        return Utils.firstSimilar(sellItem, chestinventory) < 0;
     }
 
     public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
@@ -133,7 +133,7 @@ public class Shop {
 
         // Make sure player can pay
         if (!playerInventory.containsAtLeast(buyItem, buyAmount)) {
-            player.sendMessage(ChatColor.RED + "You need " + buyItem.getAmount() + " " + Utils.getItemName(buyItem) +
+            player.sendMessage(ChatColor.RED + "You need " + buyAmount + " " + Utils.getItemName(buyItem) +
                     " in order to buy this.");
             return;
         }

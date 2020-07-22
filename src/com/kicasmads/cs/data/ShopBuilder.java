@@ -82,10 +82,10 @@ public class ShopBuilder {
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);
 
-        formatSign(false);
-
         if (event.isCancelled())
             return;
+
+        formatSign(false);
 
         ChestShops.getDataHandler().addShop(shop, chest, sign);
         shop.displayItems();

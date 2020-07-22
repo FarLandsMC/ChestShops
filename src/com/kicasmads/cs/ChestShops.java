@@ -41,7 +41,7 @@ public class ChestShops extends JavaPlugin {
     }
 
     public static ItemStack getCurrencyStack() {
-        return instance.currencyStack;
+        return instance.currencyStack.clone();
     }
 
     @Override

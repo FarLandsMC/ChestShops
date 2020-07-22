@@ -19,6 +19,15 @@ import java.util.UUID;
 public class Utils {
     public static final Runnable NO_ACTION = () -> {};
 
+    public static int firstSimilar(ItemStack stack, Inventory inventory) {
+        ItemStack[] contents = inventory.getContents();
+        for (int i = 0;i < contents.length; ++ i) {
+            if ((stack == null && contents[i] == null) || stack.isSimilar(contents[i]))
+                return i;
+        }
+        return -1;
+    }
+
     /**
      * Un-formats the given name according to how it was formatted in the formattedName method of this class, and get
      * the enumeration value corresponding to that name. If an enumeration constant could not be found with the
