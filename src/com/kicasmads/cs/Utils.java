@@ -89,6 +89,7 @@ public class Utils {
         Item itemEntity = location.getWorld().dropItem(location, item);
         itemEntity.setVelocity(new Vector());
         itemEntity.setGravity(false);
+        itemEntity.setInvulnerable(true);
         ((EntityItem) ((CraftItem) itemEntity).getHandle()).age = -32768;
         itemEntity.setPickupDelay(32767);
         return itemEntity;
