@@ -97,6 +97,7 @@ public class CSEventHandler implements Listener {
                 if (!shop.isOwner(event.getPlayer()) && !event.getPlayer().hasPermission("cs.shops.destroy-unowned")) {
                     event.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to remove this shop.");
                     event.setCancelled(true);
+                    return;
                 }
 
                 ShopRemoveEvent removeEvent = new ShopRemoveEvent(event.getPlayer(), shop);

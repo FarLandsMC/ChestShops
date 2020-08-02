@@ -63,7 +63,7 @@ public class ChestShops extends JavaPlugin {
 
             boolean selfView = (args.length == 0 || !"everyone".equals(args[0])) && !ChestShops.getDataHandler().getShops(player).isEmpty();
             if (selfView)
-                (new GuiPersonalView(player)).openGui(player);
+                (new GuiPersonalView(player.getUniqueId())).openGui(player);
             else
                 (new GuiGlobalView()).openGui(player);
 

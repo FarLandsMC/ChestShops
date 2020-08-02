@@ -61,6 +61,10 @@ public class DataHandler {
 		return shops.stream().filter(shop -> shop.isOwner(player)).collect(Collectors.toList());
 	}
 
+	public List<Shop> getShops(UUID uuid) {
+		return shops.stream().filter(shop -> shop.getOwner().equals(uuid)).collect(Collectors.toList());
+	}
+
 	public List<Shop> getAllShops() {
 		return shops;
 	}

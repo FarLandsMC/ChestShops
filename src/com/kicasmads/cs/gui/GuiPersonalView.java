@@ -3,17 +3,16 @@ package com.kicasmads.cs.gui;
 import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.data.Shop;
 
-import org.bukkit.entity.Player;
-
 import java.util.List;
+import java.util.UUID;
 
 public class GuiPersonalView extends Gui {
     private final List<Shop> shops;
     private int page;
 
-    public GuiPersonalView(Player player) {
+    public GuiPersonalView(UUID owner) {
         super(54, "My Shops");
-        this.shops = ChestShops.getDataHandler().getShops(player);
+        this.shops = ChestShops.getDataHandler().getShops(owner);
         this.page = 0;
     }
 
