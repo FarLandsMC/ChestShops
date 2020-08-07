@@ -4,6 +4,7 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.Utils;
 
+import com.kicasmads.cs.data.ShopType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -51,7 +52,10 @@ public abstract class Gui {
     }
 
     protected void setItem(int slot, Material material, String name, String... lore) {
-        ItemStack stack = new ItemStack(material);
+        setStack(slot, new ItemStack(material), name, lore);
+    }
+
+    protected void setStack(int slot, ItemStack stack, String name, String... lore) {
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(name);
         meta.setLore(Arrays.asList(lore));
@@ -63,11 +67,22 @@ public abstract class Gui {
         String name = ChatColor.RESET.toString() + shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
                 " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem());
 
+        ItemStack displayItem;
+        if (shop.getType() == ShopType.BUY)
+            displayItem = new ItemStack(Material.CHEST);
+        else {
+            displayItem = shop.getSellItem().clone();
+            displayItem.setAmount(shop.getSellAmount());
+        }
+
         // Display what it's buying and selling
         Runnable action = shopAction == null ? Utils.NO_ACTION : () -> shopAction.accept(shop);
         if (showTransaction) {
             addActionItem(
-                    slot, Material.CHEST, name, action,
+                    slot,
+                    displayItem,
+                    name,
+                    action,
                     "Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem()),
                     "Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem())
             );
@@ -75,7 +90,10 @@ public abstract class Gui {
         // Display the location
         else {
             addActionItem(
-                    slot, Material.CHEST, name, action,
+                    slot,
+                    displayItem,
+                    name,
+                    action,
                     "At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
                             shop.getChestLocation().getBlockZ()
             );
@@ -98,7 +116,7 @@ public abstract class Gui {
             }
         } else {
             for (int i = page * 45;i < Math.min((page + 1) * 45, shops.size());++ i) {
-                displayShop(i, shops.get(i), showTransaction, shopAction);
+                displayShop(i % 45, shops.get(i), showTransaction, shopAction);
             }
 
             if (page == 0)
@@ -115,6 +133,11 @@ public abstract class Gui {
 
     protected void addActionItem(int slot, Material material, String name, Runnable action, String... lore) {
         setItem(slot, material, name, lore);
+        clickActions.put(slot, action);
+    }
+
+    protected void addActionItem(int slot, ItemStack stack, String name, Runnable action, String... lore) {
+        setStack(slot, stack, name, lore);
         clickActions.put(slot, action);
     }
 

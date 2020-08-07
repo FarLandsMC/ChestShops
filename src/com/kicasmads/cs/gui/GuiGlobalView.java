@@ -62,7 +62,7 @@ public class GuiGlobalView extends Gui {
                 }
             } else {
                 for (int i = ownersPage * 45;i < Math.min((ownersPage + 1) * 45, shopOwners.size());++ i) {
-                    displayOwner(i, shopOwners.get(i));
+                    displayOwner(i % 45, shopOwners.get(i));
                 }
 
                 if (ownersPage == 0)

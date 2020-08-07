@@ -145,10 +145,6 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getView().getTopInventory() instanceof BlockInventoryHolder) ||
-                event.getView().getTopInventory() instanceof InventoryEnderChest)
-            return;
-
         Shop shop = ChestShops.getDataHandler().getShop(event.getView().getTopInventory().getLocation());
         if (shop == null)
             return;
@@ -170,10 +166,6 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (!(event.getView().getTopInventory() instanceof BlockInventoryHolder) ||
-                event.getView().getTopInventory() instanceof InventoryEnderChest)
-            return;
-
         Shop shop = ChestShops.getDataHandler().getShop(event.getView().getTopInventory().getLocation());
         if (shop == null)
             return;
