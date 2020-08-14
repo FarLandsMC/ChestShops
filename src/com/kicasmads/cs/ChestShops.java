@@ -1,10 +1,12 @@
 package com.kicasmads.cs;
 
 import com.kicasmads.cs.data.DataHandler;
+import com.kicasmads.cs.data.Shop;
+import com.kicasmads.cs.data.ShopType;
 import com.kicasmads.cs.event.CSEventHandler;
 import com.kicasmads.cs.gui.GuiGlobalView;
 import com.kicasmads.cs.gui.GuiHandler;
-import com.kicasmads.cs.gui.GuiPersonalView;
+import com.kicasmads.cs.gui.GuiShopsView;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,7 +17,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChestShops extends JavaPlugin {
     private final DataHandler dataHandler;
@@ -63,7 +68,7 @@ public class ChestShops extends JavaPlugin {
 
             boolean selfView = (args.length == 0 || !"everyone".equals(args[0])) && !ChestShops.getDataHandler().getShops(player).isEmpty();
             if (selfView)
-                (new GuiPersonalView(player.getUniqueId())).openGui(player);
+                (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false)).openGui(player);
             else
                 (new GuiGlobalView()).openGui(player);
 
@@ -75,6 +80,39 @@ public class ChestShops extends JavaPlugin {
                                 ? Collections.singletonList("everyone")
                                 : Collections.emptyList()
         );
+
+        PluginCommand searchshopsCommand = getCommand("searchshops");
+        searchshopsCommand.setExecutor((sender, command, alias, args) -> {
+            if (args.length == 0)
+                return false;
+
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
+                return true;
+            }
+            Player player = (Player) sender;
+
+            args[0] = args[0].toLowerCase();
+            List<Shop> shops = dataHandler.getAllShops().stream()
+                    .filter(shop -> shop.getType() != ShopType.BUY && Utils.formattedName(shop.getSellItem().getType()).contains(args[0]))
+                    .collect(Collectors.toList());
+            if (shops.isEmpty()) {
+                player.sendMessage(ChatColor.RED + "There are no shops that sell this item.");
+                return true;
+            }
+
+            (new GuiShopsView(shops, "Shops", true)).openGui(player);
+            return true;
+        });
+        searchshopsCommand.setTabCompleter((sender, command, alias, args) -> {
+            if (args.length != 1)
+                return Collections.emptyList();
+
+            return Arrays.stream(Material.values())
+                    .map(Utils::formattedName)
+                    .filter(name -> name.startsWith(args[0]))
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

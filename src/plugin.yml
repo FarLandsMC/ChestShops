@@ -8,6 +8,9 @@ commands:
   shops:
     description: View your shops or everyone's shops
     usage: /shops [everyone]
+  searchshops:
+    description: Search for a specific item being sold
+    usage: /searchshops <item>
 permissions:
   cs.shops.destroy-unowned:
     description: Allows a player to destroy a shop they don't own
