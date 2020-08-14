@@ -103,8 +103,10 @@ public class Shop {
             return 1;
         else {
             Inventory chestinventory = ((Chest) chest.getBlock().getState()).getInventory();
-            return chestinventory.getSize() - (int) ((((double) chestinventory.getSize()) * sellAmount * buyItem.getMaxStackSize()) /
-                    (buyAmount * sellItem.getMaxStackSize()));
+            return chestinventory.getSize() - (int) (
+                    (((double) chestinventory.getSize()) * sellAmount * buyItem.getMaxStackSize()) /
+                    (buyAmount * sellItem.getMaxStackSize())
+            );
         }
     }
 
