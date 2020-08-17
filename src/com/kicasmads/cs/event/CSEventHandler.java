@@ -6,27 +6,25 @@ import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopBuilder;
 import com.kicasmads.cs.data.ShopType;
 
-import net.minecraft.server.v1_16_R1.InventoryEnderChest;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CSEventHandler implements Listener {
@@ -44,6 +42,12 @@ public class CSEventHandler implements Listener {
             // There's already a shop in place at the location
             if (ChestShops.getDataHandler().getShop(attachedTo.getLocation()) != null)
                 return;
+
+            Block above = attachedTo.getRelative(BlockFace.UP);
+            if (above != null && above.getType() != Material.AIR) {
+                player.sendMessage(ChatColor.RED + "You must have an air block above the chest to create a shop.");
+                return;
+            }
 
             int buyAmount, sellAmount;
 
@@ -138,7 +142,16 @@ public class CSEventHandler implements Listener {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
             Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
             if (shop != null && event.getClickedBlock().getBlockData() instanceof WallSign) {
-                shop.tryTransaction(event.getPlayer(), true);
+                if (event.getPlayer().isSneaking() && shop.isOwner(event.getPlayer())) {
+                    if (shop.hasDisplayItems()) {
+                        shop.removeDisplayItems();
+                        event.getPlayer().sendMessage(ChatColor.GOLD + "Toggled item display off.");
+                    } else {
+                        shop.displayItems();
+                        event.getPlayer().sendMessage(ChatColor.GOLD + "Toggled item display on.");
+                    }
+                } else
+                    shop.tryTransaction(event.getPlayer(), true);
             }
         }
     }
@@ -178,6 +191,42 @@ public class CSEventHandler implements Listener {
         Shop shop = ChestShops.getDataHandler().getShop(event.getDestination().getLocation());
         if (shop != null)
             event.setCancelled(emptySlots(event.getDestination()) <= shop.getRequiredOpenSlots());
+    }
+
+    // Prevent hoppers from picking up displayed items
+    @EventHandler
+    public void onInventoryPickupItem(InventoryPickupItemEvent event) {
+        if (ChestShops.getDataHandler().getAllShops().stream().anyMatch(shop -> shop.isDisplaying(event.getItem())))
+            event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerPlaceBlock(BlockPlaceEvent event) {
+        Shop shop = ChestShops.getDataHandler().getShop(event.getBlock().getLocation().subtract(0, 1, 0));
+        if (shop != null && shop.hasDisplayItems()) {
+            event.getPlayer().sendMessage(ChatColor.RED + "You cannot place a block above this chest while it is " +
+                    "displaying items. Shift-right-click the sign to toggle item display off.");
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPistonPush(BlockPistonExtendEvent event) {
+        List<Block> blocks = new ArrayList<>(event.getBlocks());
+        blocks.add(event.getBlock());
+        boolean cancel = blocks.stream()
+                .map(block -> block.getRelative(event.getDirection()))
+                .filter(Objects::nonNull)
+                .map(block -> block.getLocation().subtract(0, 1, 0))
+                .map(loc -> ChestShops.getDataHandler().getShop(loc))
+                .anyMatch(shop -> shop != null && shop.hasDisplayItems());
+        event.setCancelled(cancel);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onFluidFlow(BlockFromToEvent event) {
+        Shop shop = ChestShops.getDataHandler().getShop(event.getToBlock().getLocation().subtract(0, 1, 0));
+        event.setCancelled(shop != null && shop.hasDisplayItems());
     }
 
     private int emptySlots(Inventory inventory) {

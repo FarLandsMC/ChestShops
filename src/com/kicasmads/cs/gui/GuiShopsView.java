@@ -8,13 +8,15 @@ public class GuiShopsView extends Gui {
     private final List<Shop> shops;
     private final String title;
     private final boolean allowTransactions;
+    private final boolean showOwner;
     private int page;
 
-    public GuiShopsView(List<Shop> shops, String title, boolean allowTransactions) {
+    public GuiShopsView(List<Shop> shops, String title, boolean allowTransactions, boolean showOwner) {
         super(54, title);
         this.shops = shops;
         this.title = title;
         this.allowTransactions = allowTransactions;
+        this.showOwner = showOwner;
         this.page = 0;
     }
 
@@ -25,6 +27,6 @@ public class GuiShopsView extends Gui {
 
     @Override
     protected void populateInventory() {
-        displayShops(shops, true, page, 54, this::changePage, allowTransactions ? shop -> shop.tryTransaction(user, false) : null);
+        displayShops(shops, true, showOwner, page, 54, this::changePage, allowTransactions ? shop -> shop.tryTransaction(user, false) : null);
     }
 }

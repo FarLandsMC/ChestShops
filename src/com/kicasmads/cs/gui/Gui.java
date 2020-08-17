@@ -14,11 +14,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class Gui {
     // Slot: Action
@@ -58,12 +57,12 @@ public abstract class Gui {
     protected void setStack(int slot, ItemStack stack, String name, String... lore) {
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(name);
-        meta.setLore(Arrays.asList(lore));
+        meta.setLore(Stream.of(lore).filter(Objects::nonNull).collect(Collectors.toList()));
         stack.setItemMeta(meta);
         inv.setItem(slot, stack);
     }
 
-    protected void displayShop(int slot, Shop shop, boolean showTransaction, Consumer<Shop> shopAction) {
+    protected void displayShop(int slot, Shop shop, boolean showTransaction, boolean showOwner, Consumer<Shop> shopAction) {
         String name = ChatColor.RESET.toString() + shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
                 " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem());
 
@@ -84,7 +83,8 @@ public abstract class Gui {
                     name,
                     action,
                     "Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem()),
-                    "Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem())
+                    "Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem()),
+                    showOwner ? "Owned by " + Bukkit.getOfflinePlayer(shop.getOwner()).getName() : null
             );
         }
         // Display the location
@@ -95,7 +95,8 @@ public abstract class Gui {
                     name,
                     action,
                     "At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
-                            shop.getChestLocation().getBlockZ()
+                            shop.getChestLocation().getBlockZ(),
+                    showOwner ? "Owned by " + Bukkit.getOfflinePlayer(shop.getOwner()).getName() : null
             );
         }
     }
@@ -103,6 +104,7 @@ public abstract class Gui {
     protected void displayShops(
             List<Shop> shops,
             boolean showTransaction,
+            boolean showOwner,
             int page,
             int pageCut,
             Consumer<Integer> pageChanger,
@@ -111,12 +113,12 @@ public abstract class Gui {
         if (shops.size() <= pageCut) {
             int slot = 0;
             for (Shop shop : shops) {
-                displayShop(slot, shop, showTransaction, shopAction);
+                displayShop(slot, shop, showTransaction, showOwner, shopAction);
                 ++ slot;
             }
         } else {
             for (int i = page * 45;i < Math.min((page + 1) * 45, shops.size());++ i) {
-                displayShop(i % 45, shops.get(i), showTransaction, shopAction);
+                displayShop(i % 45, shops.get(i), showTransaction, showOwner, shopAction);
             }
 
             if (page == 0)

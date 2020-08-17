@@ -68,7 +68,7 @@ public class ChestShops extends JavaPlugin {
 
             boolean selfView = (args.length == 0 || !"everyone".equals(args[0])) && !ChestShops.getDataHandler().getShops(player).isEmpty();
             if (selfView)
-                (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false)).openGui(player);
+                (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false, false)).openGui(player);
             else
                 (new GuiGlobalView()).openGui(player);
 
@@ -92,26 +92,34 @@ public class ChestShops extends JavaPlugin {
             }
             Player player = (Player) sender;
 
+            boolean searchBuy = args.length > 1 && "buy".equalsIgnoreCase(args[1]);
             args[0] = args[0].toLowerCase();
             List<Shop> shops = dataHandler.getAllShops().stream()
-                    .filter(shop -> shop.getType() != ShopType.BUY && Utils.formattedName(shop.getSellItem().getType()).contains(args[0]))
+                    .filter(shop -> searchBuy == (shop.getType() == ShopType.BUY) &&
+                            Utils.formattedName((searchBuy ? shop.getBuyItem() : shop.getSellItem()).getType()).contains(args[0]))
                     .collect(Collectors.toList());
             if (shops.isEmpty()) {
                 player.sendMessage(ChatColor.RED + "There are no shops that sell this item.");
                 return true;
             }
 
-            (new GuiShopsView(shops, "Shops", true)).openGui(player);
+            (new GuiShopsView(shops, "Shops", true, true)).openGui(player);
             return true;
         });
         searchshopsCommand.setTabCompleter((sender, command, alias, args) -> {
-            if (args.length != 1)
-                return Collections.emptyList();
+            switch (args.length) {
+                case 1:
+                    return Arrays.stream(Material.values())
+                            .map(Utils::formattedName)
+                            .filter(name -> name.startsWith(args[0]))
+                            .collect(Collectors.toList());
 
-            return Arrays.stream(Material.values())
-                    .map(Utils::formattedName)
-                    .filter(name -> name.startsWith(args[0]))
-                    .collect(Collectors.toList());
+                case 2:
+                    return Arrays.asList("buy", "sell");
+
+                default:
+                    return Collections.emptyList();
+            }
         });
     }
 

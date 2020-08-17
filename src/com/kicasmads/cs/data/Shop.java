@@ -231,6 +231,14 @@ public class Shop {
         }
     }
 
+    public boolean hasDisplayItems() {
+        return buyItemEntity != null || sellItemEntity != null;
+    }
+
+    public boolean isDisplaying(Item item) {
+        return item.getUniqueId().equals(buyItemEntity) || item.getUniqueId().equals(sellItemEntity);
+    }
+
     public void displayItems() {
         switch (type) {
             case BUY:
@@ -293,17 +301,18 @@ public class Shop {
     }
 
     public void removeDisplayItems() {
-
         if (buyItemEntity != null) {
             Item buyItem = (Item) Bukkit.getEntity(buyItemEntity);
             if (buyItem != null)
                 buyItem.remove();
+            buyItemEntity = null;
         }
 
         if (sellItemEntity != null) {
             Item sellItem = (Item) Bukkit.getEntity(sellItemEntity);
             if (sellItem != null)
                 sellItem.remove();
+            sellItemEntity = null;
         }
     }
 

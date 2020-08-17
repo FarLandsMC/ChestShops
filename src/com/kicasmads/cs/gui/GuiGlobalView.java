@@ -79,6 +79,7 @@ public class GuiGlobalView extends Gui {
             displayShops(
                     ownerGroupedShops.get(currentViewedOwner.getUniqueId()),
                     false,
+                    false,
                     shopsPage,
                     45,
                     this::changeShopsPage,
