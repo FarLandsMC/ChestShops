@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -96,7 +97,7 @@ public class ChestShops extends JavaPlugin {
             args[0] = args[0].toLowerCase();
             List<Shop> shops = dataHandler.getAllShops().stream()
                     .filter(shop -> searchBuy == (shop.getType() == ShopType.BUY) &&
-                            Utils.formattedName((searchBuy ? shop.getBuyItem() : shop.getSellItem()).getType()).contains(args[0]))
+                            Utils.searchableName(searchBuy ? shop.getBuyItem() : shop.getSellItem()).contains(args[0]))
                     .collect(Collectors.toList());
             if (shops.isEmpty()) {
                 player.sendMessage(ChatColor.RED + "There are no shops that sell this item.");
@@ -108,11 +109,15 @@ public class ChestShops extends JavaPlugin {
         });
         searchshopsCommand.setTabCompleter((sender, command, alias, args) -> {
             switch (args.length) {
-                case 1:
-                    return Arrays.stream(Material.values())
+                case 1: {
+                    List<String> suggestions = Arrays.stream(Material.values())
                             .map(Utils::formattedName)
+                            .collect(Collectors.toCollection(ArrayList::new));
+                    suggestions.addAll(Utils.ENCHANTMENT_NAMES);
+                    return suggestions.stream()
                             .filter(name -> name.startsWith(args[0]))
                             .collect(Collectors.toList());
+                }
 
                 case 2:
                     return Arrays.asList("buy", "sell");

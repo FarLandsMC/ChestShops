@@ -7,17 +7,49 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R1.entity.CraftItem;
 import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftItemStack;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Utils {
     public static final Runnable NO_ACTION = () -> {};
+    public static final List<String> ENCHANTMENT_NAMES;
+    private final static TreeMap<Integer, String> ROMAN_NUMERAL_MAP = new TreeMap<>();
+
+    static {
+        ROMAN_NUMERAL_MAP.put(1000, "M");
+        ROMAN_NUMERAL_MAP.put(900, "CM");
+        ROMAN_NUMERAL_MAP.put(500, "D");
+        ROMAN_NUMERAL_MAP.put(400, "CD");
+        ROMAN_NUMERAL_MAP.put(100, "C");
+        ROMAN_NUMERAL_MAP.put(90, "XC");
+        ROMAN_NUMERAL_MAP.put(50, "L");
+        ROMAN_NUMERAL_MAP.put(40, "XL");
+        ROMAN_NUMERAL_MAP.put(10, "X");
+        ROMAN_NUMERAL_MAP.put(9, "IX");
+        ROMAN_NUMERAL_MAP.put(5, "V");
+        ROMAN_NUMERAL_MAP.put(4, "IV");
+        ROMAN_NUMERAL_MAP.put(1, "I");
+
+        ENCHANTMENT_NAMES = Arrays.stream(Enchantment.values())
+                .flatMap(ench -> {
+                    List<String> enchantments = new ArrayList<>(ench.getMaxLevel() + 1);
+                    enchantments.add(ench.getKey().getKey().replaceAll("_", "-"));
+                    for (int i = 1;i <= ench.getMaxLevel();++ i)
+                        enchantments.add(enchantmentName(ench, i));
+                    return enchantments.stream();
+                })
+                .collect(Collectors.toList());
+    }
 
     public static int firstSimilar(ItemStack stack, Inventory inventory) {
         ItemStack[] contents = inventory.getContents();
@@ -59,6 +91,28 @@ public class Utils {
      */
     public static String formattedName(Enum e) {
         return e.name().replaceAll("_", "-").toLowerCase();
+    }
+
+    public static String enchantmentName(Enchantment enchantment, int level) {
+        return enchantment.getKey().getKey().replaceAll("_", "-") + ":" + toRomanNumerals(level).toLowerCase();
+    }
+
+    public static String toRomanNumerals(int i) {
+        int take = ROMAN_NUMERAL_MAP.floorKey(i);
+        if (i == take)
+            return ROMAN_NUMERAL_MAP.get(i);
+        return ROMAN_NUMERAL_MAP.get(take) + toRomanNumerals(i - take);
+    }
+
+    public static String searchableName(ItemStack stack) {
+        StringBuilder sb = new StringBuilder(formattedName(stack.getType()));
+        stack.getEnchantments().forEach((ench, level) -> sb.append(enchantmentName(ench, level)));
+        ItemMeta meta = stack.getItemMeta();
+        if (meta instanceof EnchantmentStorageMeta) {
+            EnchantmentStorageMeta enchMeta = (EnchantmentStorageMeta) meta;
+            enchMeta.getStoredEnchants().forEach((ench, level) -> sb.append(enchantmentName(ench, level)));
+        }
+        return sb.toString();
     }
 
     public static ItemStack itemStackFromNBT(NBTTagCompound nbt) {
