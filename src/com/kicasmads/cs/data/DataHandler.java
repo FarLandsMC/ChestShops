@@ -2,10 +2,10 @@ package com.kicasmads.cs.data;
 
 import com.kicasmads.cs.ChestShops;
 
-import net.minecraft.server.v1_16_R1.NBTBase;
-import net.minecraft.server.v1_16_R1.NBTCompressedStreamTools;
-import net.minecraft.server.v1_16_R1.NBTTagCompound;
-import net.minecraft.server.v1_16_R1.NBTTagList;
+import net.minecraft.server.v1_16_R2.NBTBase;
+import net.minecraft.server.v1_16_R2.NBTCompressedStreamTools;
+import net.minecraft.server.v1_16_R2.NBTTagCompound;
+import net.minecraft.server.v1_16_R2.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

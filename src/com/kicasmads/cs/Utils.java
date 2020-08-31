@@ -1,12 +1,12 @@
 package com.kicasmads.cs;
 
-import net.minecraft.server.v1_16_R1.EntityItem;
-import net.minecraft.server.v1_16_R1.NBTTagCompound;
+import net.minecraft.server.v1_16_R2.EntityItem;
+import net.minecraft.server.v1_16_R2.NBTTagCompound;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R1.entity.CraftItem;
-import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_16_R2.entity.CraftItem;
+import org.bukkit.craftbukkit.v1_16_R2.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
@@ -116,7 +116,7 @@ public class Utils {
     }
 
     public static ItemStack itemStackFromNBT(NBTTagCompound nbt) {
-        return nbt == null || nbt.isEmpty() ? null : CraftItemStack.asBukkitCopy(net.minecraft.server.v1_16_R1.ItemStack.a(nbt));
+        return nbt == null || nbt.isEmpty() ? null : CraftItemStack.asBukkitCopy(net.minecraft.server.v1_16_R2.ItemStack.a(nbt));
     }
 
     public static NBTTagCompound itemStackToNBT(ItemStack stack) {
