@@ -48,7 +48,7 @@ public class DataHandler {
 		shops.remove(shop);
 		shopLocations.remove(shop.getChestLocation());
 		shopLocations.remove(shop.getSignLocation());
-		shop.removeDisplayItems();
+		shop.getDisplay().removeShopDisplay();
 	}
 
 	public Shop getShop(Location location) {
