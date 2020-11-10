@@ -88,7 +88,6 @@ public class ShopBuilder {
         formatSign(false);
 
         ChestShops.getDataHandler().addShop(shop, chest, sign);
-        shop.displayItems();
         owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
         owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
     }

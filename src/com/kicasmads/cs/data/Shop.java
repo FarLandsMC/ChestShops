@@ -10,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
-import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -34,6 +33,8 @@ public class Shop {
     private       UUID      buyItemEntity;
     private       UUID      sellItemEntity;
 
+    private final ShopDisplay display;
+
     public Shop(ShopType type, UUID owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
                 int buyAmount, int sellAmount) {
         this.type       = type;
@@ -46,6 +47,8 @@ public class Shop {
         this.sellItem   = sellItem;
         this.buyAmount  = buyAmount;
         this.sellAmount = sellAmount;
+
+        display = new ShopDisplay(chest, this);
     }
 
     public Shop(NBTTagCompound tag) {
@@ -59,6 +62,13 @@ public class Shop {
         sellItem   = Utils.itemStackFromNBT(tag.getCompound("sellItem"));
         buyAmount  = tag.getInt("buyAmount");
         sellAmount = tag.getInt("sellAmount");
+
+        NBTTagCompound displayNBT = (NBTTagCompound) tag.get("display");
+        if(displayNBT != null){
+            display = new ShopDisplay(displayNBT, chest, this);
+        }else{
+            display = new ShopDisplay(chest, this);
+        }
 
         if (tag.hasKey("buyDisplayItem"))
             buyItemEntity = UUID.fromString(tag.getString("buyDisplayItem"));
@@ -93,6 +103,8 @@ public class Shop {
     public int getSellAmount() {
         return sellAmount;
     }
+
+    public ShopDisplay getDisplay() { return display; }
 
     public int getRequiredOpenSlots() {
         double changeOnTransaction = ((double) buyAmount) / buyItem.getMaxStackSize() -
@@ -231,91 +243,6 @@ public class Shop {
         }
     }
 
-    public boolean hasDisplayItems() {
-        return buyItemEntity != null || sellItemEntity != null;
-    }
-
-    public boolean isDisplaying(Item item) {
-        return item.getUniqueId().equals(buyItemEntity) || item.getUniqueId().equals(sellItemEntity);
-    }
-
-    public void displayItems() {
-        switch (type) {
-            case BUY:
-                displayItem(chest.clone().add(0.5, 0.875, 0.5), buyItem, true);
-                break;
-
-            case SELL:
-                displayItem(chest.clone().add(0.5, 0.875, 0.5), sellItem, false);
-                break;
-
-            case BARTER: {
-                // Display it so that the buy item is on the left and the sell item is on the right
-                switch (((WallSign) sign.getBlock().getBlockData()).getFacing()) {
-                    case NORTH:
-                        displayItem(chest.clone().add(0.75, 0.875, 0.5), buyItem,  true);
-                        displayItem(chest.clone().add(0.25, 0.875, 0.5), sellItem, false);
-                        break;
-
-                    case SOUTH:
-                        displayItem(chest.clone().add(0.25, 0.875, 0.5), buyItem,  true);
-                        displayItem(chest.clone().add(0.75, 0.875, 0.5), sellItem, false);
-                        break;
-
-                    case EAST:
-                        displayItem(chest.clone().add(0.5, 0.875, 0.25), buyItem,  true);
-                        displayItem(chest.clone().add(0.5, 0.875, 0.75), sellItem, false);
-                        break;
-
-                    case WEST:
-                        displayItem(chest.clone().add(0.5, 0.875, 0.75), buyItem,  true);
-                        displayItem(chest.clone().add(0.5, 0.875, 0.25), sellItem, false);
-                        break;
-                }
-            }
-        }
-    }
-
-    private void displayItem(Location location, ItemStack stack, boolean isBuy) {
-        // Check to see if the item already exists
-        if (!((((type == ShopType.BUY    && buyItemEntity  != null) || (type == ShopType.SELL && sellItemEntity != null)) &&
-                Bukkit.getEntity(type == ShopType.BUY ? buyItemEntity : sellItemEntity) != null) ||
-                (type == ShopType.BARTER && sellItemEntity != null && buyItemEntity != null &&
-                Bukkit.getEntity(buyItemEntity) != null && Bukkit.getEntity(sellItemEntity) != null))) {
-
-            // Summon a persistent, non-pickup-able item
-            switch (type) {
-                case SELL:
-                    sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
-                    break;
-                case BUY:
-                    buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
-                    break;
-                case BARTER:
-                    if (isBuy)
-                        buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
-                    else
-                        sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
-            }
-        }
-    }
-
-    public void removeDisplayItems() {
-        if (buyItemEntity != null) {
-            Item buyItem = (Item) Bukkit.getEntity(buyItemEntity);
-            if (buyItem != null)
-                buyItem.remove();
-            buyItemEntity = null;
-        }
-
-        if (sellItemEntity != null) {
-            Item sellItem = (Item) Bukkit.getEntity(sellItemEntity);
-            if (sellItem != null)
-                sellItem.remove();
-            sellItemEntity = null;
-        }
-    }
-
     public NBTTagCompound toNbt() {
         NBTTagCompound shopTag = new NBTTagCompound();
 
@@ -325,6 +252,8 @@ public class Shop {
         shopTag.setString("owner", owner.toString());
         shopTag.set("sellItem", Utils.itemStackToNBT(sellItem));
         shopTag.set("buyItem",  Utils.itemStackToNBT(buyItem));
+
+        shopTag.set("display", display.toNBT());
 
         if (chest != null)
             shopTag.set("chestLocation", Utils.locationToNBT(chest));

@@ -9,6 +9,7 @@ import com.kicasmads.cs.data.ShopType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.WallSign;
@@ -143,13 +144,9 @@ public class CSEventHandler implements Listener {
             Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
             if (shop != null && event.getClickedBlock().getBlockData() instanceof WallSign) {
                 if (event.getPlayer().isSneaking() && shop.isOwner(event.getPlayer())) {
-                    if (shop.hasDisplayItems()) {
-                        shop.removeDisplayItems();
-                        event.getPlayer().sendMessage(ChatColor.GOLD + "Toggled item display off.");
-                    } else {
-                        shop.displayItems();
-                        event.getPlayer().sendMessage(ChatColor.GOLD + "Toggled item display on.");
-                    }
+                    shop.getDisplay().cycleDisplayType();
+                    event.getPlayer().sendMessage(ChatColor.GOLD + "Shop display set to " + shop.getDisplay().getDisplayString() + ".");
+                    event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
                 } else
                     shop.tryTransaction(event.getPlayer(), true);
             }
@@ -196,14 +193,14 @@ public class CSEventHandler implements Listener {
     // Prevent hoppers from picking up displayed items
     @EventHandler
     public void onInventoryPickupItem(InventoryPickupItemEvent event) {
-        if (ChestShops.getDataHandler().getAllShops().stream().anyMatch(shop -> shop.isDisplaying(event.getItem())))
+        if (ChestShops.getDataHandler().getAllShops().stream().anyMatch(shop -> shop.getDisplay().isDisplaying(event.getItem())))
             event.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerPlaceBlock(BlockPlaceEvent event) {
         Shop shop = ChestShops.getDataHandler().getShop(event.getBlock().getLocation().subtract(0, 1, 0));
-        if (shop != null && shop.hasDisplayItems()) {
+        if (shop != null && shop.getDisplay().isShown()) {
             event.getPlayer().sendMessage(ChatColor.RED + "You cannot place a block above this chest while it is " +
                     "displaying items. Shift-right-click the sign to toggle item display off.");
             event.setCancelled(true);
@@ -219,14 +216,14 @@ public class CSEventHandler implements Listener {
                 .filter(Objects::nonNull)
                 .map(block -> block.getLocation().subtract(0, 1, 0))
                 .map(loc -> ChestShops.getDataHandler().getShop(loc))
-                .anyMatch(shop -> shop != null && shop.hasDisplayItems());
+                .anyMatch(shop -> shop != null && shop.getDisplay().isShown());
         event.setCancelled(cancel);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onFluidFlow(BlockFromToEvent event) {
         Shop shop = ChestShops.getDataHandler().getShop(event.getToBlock().getLocation().subtract(0, 1, 0));
-        event.setCancelled(shop != null && shop.hasDisplayItems());
+        event.setCancelled(shop != null && shop.getDisplay().isShown());
     }
 
     private int emptySlots(Inventory inventory) {
