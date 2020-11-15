@@ -1,16 +1,13 @@
 package com.kicasmads.cs.data;
 
 import com.kicasmads.cs.Utils;
-import net.minecraft.server.v1_16_R2.NBTTagCompound;
+import net.minecraft.server.v1_16_R3.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.EulerAngle;
 
 import java.util.UUID;
@@ -201,12 +198,14 @@ public class ShopDisplay {
             Location loc = location.clone().subtract(0, .5, 0);
             loc.setPitch(0);
             switch (((WallSign) shop.getSignLocation().getBlock().getBlockData()).getFacing()) {
-                case NORTH, SOUTH -> {
+                case NORTH:
+                case SOUTH: {
                     loc.add(.14, 0, 1.0625);
                     loc.setYaw(180);
                     armorStand = (ArmorStand) location.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
+                    break;
                 }
-                default -> {
+                default: {
                     loc.add(1.0625, 0, .85);
                     loc.setYaw(90);
                     armorStand = (ArmorStand) location.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
