@@ -6,6 +6,7 @@ import com.kicasmads.cs.event.ShopTransactionEvent;
 
 import net.minecraft.server.v1_16_R3.NBTTagCompound;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
@@ -58,6 +59,7 @@ public class Shop {
 
         buyItem    = Utils.itemStackFromNBT(tag.getCompound("buyItem"));
         sellItem   = Utils.itemStackFromNBT(tag.getCompound("sellItem"));
+
         buyAmount  = tag.getInt("buyAmount");
         sellAmount = tag.getInt("sellAmount");
 
@@ -67,11 +69,16 @@ public class Shop {
         }else{
             display = new ShopDisplay(chest, this);
         }
-
-        if (tag.hasKey("buyDisplayItem"))
-            buyItemEntity = UUID.fromString(tag.getString("buyDisplayItem"));
-        if (tag.hasKey("sellDisplayItem"))
-            sellItemEntity = UUID.fromString(tag.getString("sellDisplayItem"));
+        try {
+            if (tag.hasKey("buyDisplayItem")) {
+                buyItemEntity = UUID.fromString(tag.getString("buyDisplayItem"));
+                Bukkit.getEntity(buyItemEntity).remove();
+            }
+            if (tag.hasKey("sellDisplayItem")) {
+                sellItemEntity = UUID.fromString(tag.getString("sellDisplayItem"));
+                Bukkit.getEntity(sellItemEntity).remove();
+            }
+        }catch (Exception ignored){}
     }
 
     public final ShopType getType() {
@@ -272,5 +279,18 @@ public class Shop {
 
     public Location getChestLocation() {
         return chest;
+    }
+
+    public void resetItemEntities(){
+        buyItemEntity = null;
+        sellItemEntity = null;
+    }
+
+    public UUID getBuyItemEntity() {
+        return buyItemEntity;
+    }
+
+    public UUID getSellItemEntity() {
+        return sellItemEntity;
     }
 }

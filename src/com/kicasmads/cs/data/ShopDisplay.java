@@ -125,18 +125,22 @@ public class ShopDisplay {
 
     private void displayItem(Location location, ItemStack stack, boolean isBuy) {
         // Summon a persistent, non-pickup-able item
+        Item item = Utils.summonStaticItem(location, stack);
+        item.addScoreboardTag("chestShopDisplay");
+        item.addScoreboardTag("noKill");
+
         switch (shop.getType()) {
             case SELL:
-                sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                sellItemEntity = item.getUniqueId();
                 break;
             case BUY:
-                buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                buyItemEntity = item.getUniqueId();
                 break;
             case BARTER:
                 if (isBuy)
-                    buyItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                    buyItemEntity = item.getUniqueId();
                 else
-                    sellItemEntity = Utils.summonStaticItem(location, stack).getUniqueId();
+                    sellItemEntity = item.getUniqueId();
         }
     }
 
@@ -148,6 +152,8 @@ public class ShopDisplay {
         itemFrame.setVisible(false);
         itemFrame.setFixed(true);
 
+        itemFrame.addScoreboardTag("chestShopDisplay");
+        itemFrame.addScoreboardTag("noKill");
 
         switch (shop.getType()) {
             case SELL:
@@ -172,6 +178,8 @@ public class ShopDisplay {
         armorStand.setMarker(true); // Make it so that it can be clicked through
         armorStand.setSmall(smallStand);
         armorStand.getEquipment().setHelmet(item);
+        armorStand.addScoreboardTag("chestShopDisplay");
+        armorStand.addScoreboardTag("noKill");
         if (displayCase) {
             glassCaseAS = armorStand.getUniqueId();
         } else {
@@ -216,6 +224,8 @@ public class ShopDisplay {
             armorStand.setInvulnerable(true);
             armorStand.setMarker(true); // Make it so that it can be clicked through
             armorStand.getEquipment().setItemInMainHand(item);
+            armorStand.addScoreboardTag("chestShopDisplay");
+            armorStand.addScoreboardTag("noKill");
             if (shop.getType() == ShopType.SELL) {
                 sellItemEntity = armorStand.getUniqueId();
             } else {
@@ -240,6 +250,15 @@ public class ShopDisplay {
             if (glassCaseAS != null) {
                 Bukkit.getEntity(glassCaseAS).remove();
                 glassCaseAS = null;
+            }
+            if (shop.getSellItemEntity() != null || shop.getBuyItemEntity() != null) {
+                if (shop.getSellItemEntity() != null) {
+                    Bukkit.getEntity(shop.getSellItemEntity()).remove();
+                }
+                if (shop.getBuyItemEntity() != null) {
+                    Bukkit.getEntity(shop.getBuyItemEntity()).remove();
+                }
+                shop.resetItemEntities();
             }
         } catch (Exception ignored) {
         }
