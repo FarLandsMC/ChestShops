@@ -2,6 +2,7 @@ package com.kicasmads.cs.event;
 
 import com.kicasmads.cs.*;
 import com.kicasmads.cs.Utils;
+import com.kicasmads.cs.data.DisplayType;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopBuilder;
 import com.kicasmads.cs.data.ShopType;
@@ -19,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -143,6 +145,11 @@ public class CSEventHandler implements Listener {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
             Shop shop = ChestShops.getDataHandler().getShop(event.getClickedBlock().getLocation());
             if (shop != null && event.getClickedBlock().getBlockData() instanceof WallSign) {
+                if(event.getHand() == EquipmentSlot.OFF_HAND){ // Cancel offhand action to prevent double action with offhand item
+                    event.setCancelled(true);
+                    return;
+                }
+
                 if (event.getPlayer().isSneaking() && shop.isOwner(event.getPlayer())) {
                     shop.getDisplay().cycleDisplayType();
                     event.getPlayer().sendMessage(ChatColor.GOLD + "Shop display set to " + shop.getDisplay().getDisplayString() + ".");
@@ -199,12 +206,16 @@ public class CSEventHandler implements Listener {
 
     @EventHandler
     public void onPlayerPlaceBlock(BlockPlaceEvent event) {
-        Shop shop = ChestShops.getDataHandler().getShop(event.getBlock().getLocation().subtract(0, 1, 0));
-        if (shop != null && shop.getDisplay().isShown()) {
-            event.getPlayer().sendMessage(ChatColor.RED + "You cannot place a block above this chest while it is " +
-                    "displaying items. Shift-right-click the sign to toggle item display off.");
+        Shop shopOn = ChestShops.getDataHandler().getShop(event.getBlockAgainst().getLocation());
+        Shop shopBelow = ChestShops.getDataHandler().getShop(event.getBlock().getLocation().subtract(0, 1, 0));
+        if (shopBelow != null && shopBelow.getDisplay().isShown()) {
+            shopBelow.getDisplay().setDisplayType(DisplayType.OFF);
+            event.getPlayer().sendMessage(ChatColor.GOLD + "Shop display set to off as you placed a block above it.");
+        }
+        if(shopOn != null && event.getBlockAgainst().getBlockData() instanceof WallSign){
             event.setCancelled(true);
         }
+
     }
 
     @EventHandler(ignoreCancelled = true)
