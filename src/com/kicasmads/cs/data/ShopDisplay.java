@@ -47,8 +47,6 @@ public class ShopDisplay {
         return Utils.formattedName(this.displayType);
     }
 
-    ;
-
     UUID uuidFromString(String s) {
         if (s.equals("none") || s.equals("null")) {
             return null;
@@ -79,7 +77,6 @@ public class ShopDisplay {
                 break;
         }
     }
-
 
     private void createDisplayItem() { // Create The ITEM_ONLY display (Item Entity)
         ItemStack buyItem = shop.getBuyItem();
@@ -287,6 +284,11 @@ public class ShopDisplay {
         }
         createShopDisplay();
         return displayType;
+    }
+
+    public void setDisplayType(DisplayType displayType){
+        this.displayType = displayType;
+        createShopDisplay();
     }
 
     public NBTTagCompound toNBT() {

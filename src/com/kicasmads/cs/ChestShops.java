@@ -17,10 +17,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class ChestShops extends JavaPlugin {
@@ -67,19 +65,48 @@ public class ChestShops extends JavaPlugin {
             }
             Player player = (Player) sender;
 
-            boolean selfView = (args.length == 0 || !"everyone".equals(args[0])) && !ChestShops.getDataHandler().getShops(player).isEmpty();
-            if (selfView)
+            boolean selfView = args.length == 1 && args[0].equals("me") && !ChestShops.getDataHandler().getShops(player).isEmpty();
+            if (selfView) {
                 (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false, false)).openGui(player);
-            else
+            } else {
+                System.out.println(Arrays.toString(args));
+                if(args.length >= 1 && !args[0].equals("everyone")){
+                    final UUID[] shopOwner = {null};
+                    dataHandler.getAllShops().stream().filter(shop -> !shop.isEmpty()).forEach(shop -> {
+                        if(Bukkit.getOfflinePlayer(shop.getOwner()).getName().equalsIgnoreCase(args[0]))
+                            shopOwner[0] = shop.getOwner();
+                    });
+                    if(shopOwner[0] != null){
+                        String shopName = Bukkit.getOfflinePlayer(shopOwner[0]).getName() + "'s Shops";
+
+                        (new GuiShopsView(dataHandler.getShops(shopOwner[0]), shopName, true, false)).openGui(player);
+                        return true;
+                    }
+                    player.sendMessage(ChatColor.RED + "The player \"" + args[0] + "\" does not have any shops.");
+                }
                 (new GuiGlobalView()).openGui(player);
+            }
 
             return true;
         });
         shopsCommand.setTabCompleter(
-                (sender, command, alias, args) ->
-                        args.length == 1
-                                ? Collections.singletonList("everyone")
-                                : Collections.emptyList()
+                (sender, command, alias, args) -> {
+                    if(args.length == 1) {
+                        List<String> tabComplete = new ArrayList<>();
+                        if("me".startsWith(args[0].toLowerCase())) {tabComplete.add("me");}
+                        if("everyone".startsWith(args[0].toLowerCase())) {tabComplete.add("everyone");}
+                        dataHandler.getAllShops().forEach(shop -> {
+                            String name = Bukkit.getOfflinePlayer(shop.getOwner()).getName();
+                            assert name != null;
+                            if (name.toLowerCase().startsWith(args[0].toLowerCase())){
+                                tabComplete.add(name);
+                            }
+                        });
+                        return tabComplete;
+                    }
+                    return Collections.emptyList();
+
+                }
         );
 
         PluginCommand searchshopsCommand = getCommand("searchshops");
