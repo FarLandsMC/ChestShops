@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Sign;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -77,7 +78,7 @@ public class ShopBuilder {
     }
 
     private void createShop() {
-        Shop shop = new Shop(type, owner.getUniqueId(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
+        Shop shop = new Shop(type, ((CraftPlayer) owner).getProfile(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
         ShopCreateEvent event = new ShopCreateEvent(owner, shop);
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);

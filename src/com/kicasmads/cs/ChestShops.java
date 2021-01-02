@@ -8,6 +8,7 @@ import com.kicasmads.cs.gui.GuiGlobalView;
 import com.kicasmads.cs.gui.GuiHandler;
 import com.kicasmads.cs.gui.GuiShopsView;
 
+import com.mojang.authlib.GameProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class ChestShops extends JavaPlugin {
@@ -69,19 +69,20 @@ public class ChestShops extends JavaPlugin {
             if (selfView) {
                 (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false, false)).openGui(player);
             } else {
-                System.out.println(Arrays.toString(args));
                 if(args.length >= 1 && !args[0].equals("everyone")){
-                    final UUID[] shopOwner = {null};
-                    dataHandler.getAllShops().stream().filter(shop -> !shop.isEmpty()).forEach(shop -> {
-                        if(Bukkit.getOfflinePlayer(shop.getOwner()).getName().equalsIgnoreCase(args[0]))
-                            shopOwner[0] = shop.getOwner();
-                    });
-                    if(shopOwner[0] != null){
-                        String shopName = Bukkit.getOfflinePlayer(shopOwner[0]).getName() + "'s Shops";
+                    GameProfile shopOwner = dataHandler.getAllShops()
+                            .stream()
+                            .filter(shop -> shop.isNotEmpty() && shop.getCachedOwner().getName().equalsIgnoreCase(args[0]))
+                            .map(Shop::getCachedOwner)
+                            .findFirst()
+                            .orElse(null);
 
-                        (new GuiShopsView(dataHandler.getShops(shopOwner[0]), shopName, true, false)).openGui(player);
+                    if(shopOwner != null) {
+                        String shopName = shopOwner.getName() + "'s Shops";
+                        (new GuiShopsView(dataHandler.getShops(shopOwner.getId()), shopName, true, false)).openGui(player);
                         return true;
                     }
+
                     player.sendMessage(ChatColor.RED + "The player \"" + args[0] + "\" does not have any shops.");
                 }
                 (new GuiGlobalView()).openGui(player);
@@ -96,7 +97,7 @@ public class ChestShops extends JavaPlugin {
                         if("me".startsWith(args[0].toLowerCase())) {tabComplete.add("me");}
                         if("everyone".startsWith(args[0].toLowerCase())) {tabComplete.add("everyone");}
                         dataHandler.getAllShops().forEach(shop -> {
-                            String name = Bukkit.getOfflinePlayer(shop.getOwner()).getName();
+                            String name = shop.getCachedOwner().getName();
                             assert name != null;
                             if (name.toLowerCase().startsWith(args[0].toLowerCase())){
                                 tabComplete.add(name);

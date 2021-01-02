@@ -84,7 +84,7 @@ public abstract class Gui {
                     action,
                     "Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem()),
                     "Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem()),
-                    showOwner ? "Owned by " + Bukkit.getOfflinePlayer(shop.getOwner()).getName() : null
+                    showOwner ? "Owned by " + shop.getCachedOwner().getName() : null
             );
         }
         // Display the location
@@ -96,7 +96,7 @@ public abstract class Gui {
                     action,
                     "At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
                             shop.getChestLocation().getBlockZ(),
-                    showOwner ? "Owned by " + Bukkit.getOfflinePlayer(shop.getOwner()).getName() : null
+                    showOwner ? "Owned by " + shop.getCachedOwner().getName() : null
             );
         }
     }

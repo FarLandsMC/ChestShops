@@ -4,6 +4,7 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopTransactionEvent;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.server.v1_16_R3.NBTTagCompound;
 
 import org.bukkit.Bukkit;
@@ -18,23 +19,23 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.UUID;
 
 public class Shop {
-    private final ShopType  type;
-    private final UUID      owner;
+    private final ShopType    type;
+    private       GameProfile owner;
 
-    private final Location  sign;
-    private final Location  chest;
+    private final Location    sign;
+    private final Location    chest;
 
-    private final ItemStack buyItem;
-    private final ItemStack sellItem;
-    private final int       sellAmount;
-    private final int       buyAmount;
+    private final ItemStack   buyItem;
+    private final ItemStack   sellItem;
+    private final int         sellAmount;
+    private final int         buyAmount;
 
-    private       UUID      buyItemEntity;
-    private       UUID      sellItemEntity;
+    private       UUID        buyItemEntity;
+    private       UUID        sellItemEntity;
 
     private final ShopDisplay display;
 
-    public Shop(ShopType type, UUID owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
+    public Shop(ShopType type, GameProfile owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
                 int buyAmount, int sellAmount) {
         this.type       = type;
         this.owner      = owner;
@@ -52,7 +53,9 @@ public class Shop {
 
     public Shop(NBTTagCompound tag) {
         type  = ShopType.values()[tag.getInt("type")];
-        owner = UUID.fromString(tag.getString("owner"));
+        UUID ownerId = UUID.fromString(tag.getString("owner"));
+        String ownerName = tag.getString("ownerName");
+        owner = new GameProfile(ownerId, ownerName);
 
         sign  = Utils.locationFromNBT(tag.getCompound("signLocation"));
         chest = Utils.locationFromNBT(tag.getCompound("chestLocation"));
@@ -85,12 +88,17 @@ public class Shop {
         return type;
     }
 
-    public UUID getOwner() {
+    public GameProfile getLazilyUpdatedOwner() {
+        owner = ChestShops.getDataHandler().getProfileUpdater().maybeUpdate(owner);
+        return owner;
+    }
+
+    public GameProfile getCachedOwner() {
         return owner;
     }
 
     public boolean isOwner(Player player) {
-        return owner.equals(player.getUniqueId());
+        return owner.getId().equals(player.getUniqueId());
     }
 
     public ItemStack getBuyItem() {
@@ -127,10 +135,10 @@ public class Shop {
         }
     }
 
-    public boolean isEmpty() {
+    public boolean isNotEmpty() {
         Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory chestinventory = shopChest.getInventory();
-        return Utils.firstSimilar(sellItem, chestinventory) < 0;
+        return Utils.firstSimilar(sellItem, chestinventory) >= 0;
     }
 
     public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
@@ -254,7 +262,8 @@ public class Shop {
         shopTag.setInt("buyAmount", buyAmount);
         shopTag.setInt("sellAmount", sellAmount);
         shopTag.setInt("type", type.ordinal());
-        shopTag.setString("owner", owner.toString());
+        shopTag.setString("owner", owner.getId().toString());
+        shopTag.setString("ownerName", owner.getName());
         shopTag.set("sellItem", Utils.itemStackToNBT(sellItem));
         shopTag.set("buyItem",  Utils.itemStackToNBT(buyItem));
 

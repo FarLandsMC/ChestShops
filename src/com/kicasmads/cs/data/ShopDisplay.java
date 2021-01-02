@@ -271,7 +271,7 @@ public class ShopDisplay {
                 (displayType == DisplayType.ON_WALL && sellItemEntity != null); // Display is ON_WALL(item frame)
     }
 
-    public DisplayType cycleDisplayType() {
+    public void cycleDisplayType() {
         int current = displayType.ordinal();
         displayType = current + 1 < DisplayType.values().length ? DisplayType.values()[current + 1] : DisplayType.values()[0];
         if (shop.getType().equals(ShopType.BARTER)) {
@@ -283,7 +283,6 @@ public class ShopDisplay {
             cycleDisplayType();
         }
         createShopDisplay();
-        return displayType;
     }
 
     public void setDisplayType(DisplayType displayType){
