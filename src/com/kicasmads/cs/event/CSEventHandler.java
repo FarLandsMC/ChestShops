@@ -208,7 +208,9 @@ public class CSEventHandler implements Listener {
     public void onPlayerPlaceBlock(BlockPlaceEvent event) {
         Shop shopOn = ChestShops.getDataHandler().getShop(event.getBlockAgainst().getLocation());
         Shop shopBelow = ChestShops.getDataHandler().getShop(event.getBlock().getLocation().subtract(0, 1, 0));
-        if (shopBelow != null && shopBelow.getDisplay().isShown()) {
+        if (shopBelow != null && shopBelow.getDisplay().isShown() &&
+                !(event.getBlock().getLocation().subtract(0, 1, 0).getBlock().getBlockData() instanceof WallSign) // Block placed is above shop's sign
+        ) {
             shopBelow.getDisplay().setDisplayType(DisplayType.OFF);
             event.getPlayer().sendMessage(ChatColor.GOLD + "Shop display set to off as you placed a block above it.");
         }

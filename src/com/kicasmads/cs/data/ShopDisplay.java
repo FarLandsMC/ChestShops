@@ -277,9 +277,11 @@ public class ShopDisplay {
         if (shop.getType().equals(ShopType.BARTER)) {
             displayType = DisplayType.ITEM_ONLY;
         }
-        if (!(shop.getBuyItem().getType().isBlock() ||
-                shop.getSellItem().getType().isBlock()) &&
-                displayType.equals(DisplayType.LARGE_BLOCK)) {
+        if (
+                (!(shop.getBuyItem().getType().isBlock() ||shop.getSellItem().getType().isBlock()) && displayType.equals(DisplayType.LARGE_BLOCK)) || // Skip LARGE_BLOCK if item to display isn't a block
+                (shop.getChestLocation().clone().add(0, 1, 0).getBlock().getType() != Material.AIR && displayType.equals(DisplayType.ITEM_ONLY)) // Skip ITEM_ONLY if block above chest
+
+        ) {
             cycleDisplayType();
         }
         createShopDisplay();

@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Chest;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -120,6 +121,10 @@ public class Shop {
     public ShopDisplay getDisplay() { return display; }
 
     public int getRequiredOpenSlots() {
+        if(!(chest.getBlock().getState() instanceof Chest)) { // If the block where the chest for the shop should be isn't a chest
+            removeShopInvalidChest();
+            return 0;
+        }
         double changeOnTransaction = ((double) buyAmount) / buyItem.getMaxStackSize() -
                 ((double) sellAmount) / sellItem.getMaxStackSize();
 
@@ -142,6 +147,11 @@ public class Shop {
     }
 
     public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
+        if(!(chest.getBlock().getState() instanceof Chest)){ // If the block where the chest for the shop should be isn't a chest
+            removeShopInvalidChest();
+            player.sendMessage(ChatColor.RED + "This shop has an error.");
+            return;
+        }
         Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory chestinventory = shopChest.getInventory();
 
@@ -253,6 +263,21 @@ public class Shop {
                 // Only count items we added, not ones that were already there
                 numGiven += stack.getAmount() - ogAmount;
             }
+        }
+    }
+
+    public void removeShopInvalidChest(){
+        display.removeShopDisplay();
+        ChestShops.error("Removing shop at ([" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " +
+                chest.getBlockY() + ", " + chest.getBlockZ() +
+                "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + owner.getName());
+        if(sign.getBlock().getState() instanceof Sign) {
+            Sign signBlock = ((Sign) sign.getBlock().getState());
+            signBlock.setLine(0, ChatColor.RED + "" + ChatColor.BOLD + "[SHOP]");
+            signBlock.setLine(1, ChatColor.RED + "This chest");
+            signBlock.setLine(2, ChatColor.RED + "is missing.");
+            signBlock.setLine(3, ChatColor.RED + "Shop Removed.");
+            signBlock.update();
         }
     }
 
