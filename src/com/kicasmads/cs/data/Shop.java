@@ -2,6 +2,7 @@ package com.kicasmads.cs.data;
 
 import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.Utils;
+import com.kicasmads.cs.event.ShopRemoveEvent;
 import com.kicasmads.cs.event.ShopTransactionEvent;
 
 import com.mojang.authlib.GameProfile;
@@ -50,6 +51,8 @@ public class Shop {
         this.sellAmount = sellAmount;
 
         display = new ShopDisplay(chest, this);
+
+        removeIfInvalidChest(); // If the chest is missing, remove the shop
     }
 
     public Shop(NBTTagCompound tag) {
@@ -121,8 +124,7 @@ public class Shop {
     public ShopDisplay getDisplay() { return display; }
 
     public int getRequiredOpenSlots() {
-        if(!(chest.getBlock().getState() instanceof Chest)) { // If the block where the chest for the shop should be isn't a chest
-            removeShopInvalidChest();
+        if(removeIfInvalidChest()){
             return 0;
         }
         double changeOnTransaction = ((double) buyAmount) / buyItem.getMaxStackSize() -
@@ -141,14 +143,16 @@ public class Shop {
     }
 
     public boolean isNotEmpty() {
+        if(removeIfInvalidChest()){
+            return false;
+        }
         Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory chestinventory = shopChest.getInventory();
         return Utils.firstSimilar(sellItem, chestinventory) >= 0;
     }
 
     public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
-        if(!(chest.getBlock().getState() instanceof Chest)){ // If the block where the chest for the shop should be isn't a chest
-            removeShopInvalidChest();
+        if(removeIfInvalidChest()){
             player.sendMessage(ChatColor.RED + "This shop has an error.");
             return;
         }
@@ -266,19 +270,31 @@ public class Shop {
         }
     }
 
-    public void removeShopInvalidChest(){
-        display.removeShopDisplay();
-        ChestShops.error("Removing shop at ([" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " +
-                chest.getBlockY() + ", " + chest.getBlockZ() +
-                "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + owner.getName());
-        if(sign.getBlock().getState() instanceof Sign) {
-            Sign signBlock = ((Sign) sign.getBlock().getState());
-            signBlock.setLine(0, ChatColor.RED + "" + ChatColor.BOLD + "[SHOP]");
-            signBlock.setLine(1, ChatColor.RED + "This chest");
-            signBlock.setLine(2, ChatColor.RED + "is missing.");
-            signBlock.setLine(3, ChatColor.RED + "Shop Removed.");
-            signBlock.update();
+    public boolean removeIfInvalidChest(boolean removeFromList){
+        if(!(chest.getBlock().getState() instanceof Chest)) {
+            display.removeShopDisplay();
+            ChestShops.error("Removing shop at ([" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " +
+                    chest.getBlockY() + ", " + chest.getBlockZ() +
+                    "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getCachedOwner().getName());
+            if (sign.getBlock().getState() instanceof Sign) {
+                Sign signBlock = ((Sign) sign.getBlock().getState());
+                signBlock.setLine(0, ChatColor.RED + "" + ChatColor.BOLD + "[SHOP]");
+                signBlock.setLine(1, ChatColor.RED + "This chest");
+                signBlock.setLine(2, ChatColor.RED + "is missing.");
+                signBlock.setLine(3, ChatColor.RED + "Shop Removed.");
+                signBlock.update();
+            }
+            if(removeFromList){
+                ChestShops.getDataHandler().removeShop(this);
+            }
+            ChestShops.getInstance().getServer().getPluginManager().callEvent(new ShopRemoveEvent(null, this));
+            return true;
         }
+        return false;
+    }
+
+    public boolean removeIfInvalidChest() {
+     return removeIfInvalidChest(true);
     }
 
     public NBTTagCompound toNbt() {

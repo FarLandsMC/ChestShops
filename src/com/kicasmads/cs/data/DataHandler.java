@@ -10,7 +10,6 @@ import net.minecraft.server.v1_16_R3.NBTTagList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -133,8 +132,7 @@ public class DataHandler {
 					ex.printStackTrace();
 					continue;
 				}
-				if(!(shop.getChestLocation().getBlock().getState() instanceof Chest)){ // If the block where the chest for the shop should be isn't a chest
-					shop.removeShopInvalidChest();
+				if(shop.removeIfInvalidChest(false)){ // Remove if the block where the chest for the shop should be isn't a chest
 					continue;
 				}
 				shops.add(shop);
