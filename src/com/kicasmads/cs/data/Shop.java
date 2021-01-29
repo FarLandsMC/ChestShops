@@ -59,6 +59,12 @@ public class Shop {
         type  = ShopType.values()[tag.getInt("type")];
         UUID ownerId = UUID.fromString(tag.getString("owner"));
         String ownerName = tag.getString("ownerName");
+        if(ownerName.isEmpty()){
+            Player player = Bukkit.getPlayer(ownerId);
+            if(player != null) {
+                ownerName = player.getName();
+            }
+        }
         owner = new GameProfile(ownerId, ownerName);
 
         sign  = Utils.locationFromNBT(tag.getCompound("signLocation"));

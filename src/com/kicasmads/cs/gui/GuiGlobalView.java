@@ -43,7 +43,8 @@ public class GuiGlobalView extends Gui {
         });
 
         // Sort by username
-        shopOwners.sort(Comparator.comparing(GameProfile::getName));
+        // Removed for now.  May add back later, if fixes bug.
+        // shopOwners.sort(Comparator.comparing(GameProfile::getName));
     }
 
     private void changeOwnersPage(int move) {
