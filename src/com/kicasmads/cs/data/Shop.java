@@ -11,6 +11,7 @@ import net.minecraft.server.v1_16_R3.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -60,7 +61,7 @@ public class Shop {
         UUID ownerId = UUID.fromString(tag.getString("owner"));
         String ownerName = tag.getString("ownerName");
         if(ownerName.isEmpty()){
-            Player player = Bukkit.getPlayer(ownerId);
+            OfflinePlayer player = Bukkit.getOfflinePlayer(ownerId);
             if(player != null) {
                 ownerName = player.getName();
             }
