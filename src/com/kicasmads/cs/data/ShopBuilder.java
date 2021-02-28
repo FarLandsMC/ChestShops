@@ -4,6 +4,7 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopCreateEvent;
 
+import com.mojang.authlib.GameProfile;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -78,7 +79,7 @@ public class ShopBuilder {
     }
 
     private void createShop() {
-        Shop shop = new Shop(type, ((CraftPlayer) owner).getProfile(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
+        Shop shop = new Shop(type, new GameProfile(owner.getUniqueId(), owner.getName()), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
         ShopCreateEvent event = new ShopCreateEvent(owner, shop);
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);

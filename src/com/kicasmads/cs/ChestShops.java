@@ -11,6 +11,7 @@ import com.kicasmads.cs.gui.GuiShopsView;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -98,8 +99,12 @@ public class ChestShops extends JavaPlugin {
                         if("everyone".startsWith(args[0].toLowerCase())) {tabComplete.add("everyone");}
                         dataHandler.getAllShops().forEach(shop -> {
                             String name = shop.getCachedOwner().getName();
-                            assert name != null;
-                            if (name.toLowerCase().startsWith(args[0].toLowerCase())){
+                            if(name == null){
+                                Location chest = shop.getChestLocation();
+                                error("Shop at [" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " + chest.getBlockY() + ", " + chest.getBlockZ() +"] - cached owner name missing");
+                                return;
+                            }
+                            if (name.toLowerCase().startsWith(args[0].toLowerCase())) {
                                 tabComplete.add(name);
                             }
                         });
