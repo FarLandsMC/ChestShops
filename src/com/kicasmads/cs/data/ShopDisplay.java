@@ -1,7 +1,7 @@
 package com.kicasmads.cs.data;
 
 import com.kicasmads.cs.Utils;
-import net.minecraft.server.v1_16_R3.NBTTagCompound;
+import net.minecraft.nbt.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
