@@ -311,7 +311,7 @@ public class Shop {
         shopTag.setInt("sellAmount", sellAmount);
         shopTag.setInt("type", type.ordinal());
         shopTag.setString("owner", owner.getId().toString());
-        shopTag.setString("ownerName", owner.getName());
+        shopTag.setString("ownerName", owner == null || owner.getName() == null ? "" : owner.getName());
         shopTag.set("sellItem", Utils.itemStackToNBT(sellItem));
         shopTag.set("buyItem",  Utils.itemStackToNBT(buyItem));
 
