@@ -1,12 +1,12 @@
 package com.kicasmads.cs;
 
-import net.minecraft.server.v1_16_R3.EntityItem;
-import net.minecraft.server.v1_16_R3.NBTTagCompound;
+import net.minecraft.world.entity.item.EntityItem;
+import net.minecraft.nbt.NBTTagCompound;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftItem;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftItem;
+import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
@@ -116,7 +116,7 @@ public class Utils {
     }
 
     public static ItemStack itemStackFromNBT(NBTTagCompound nbt) {
-        return nbt == null || nbt.isEmpty() ? null : CraftItemStack.asBukkitCopy(net.minecraft.server.v1_16_R3.ItemStack.a(nbt));
+        return nbt == null || nbt.isEmpty() ? null : CraftItemStack.asBukkitCopy(net.minecraft.world.item.ItemStack.a(nbt));
     }
 
     public static NBTTagCompound itemStackToNBT(ItemStack stack) {
@@ -144,7 +144,7 @@ public class Utils {
         itemEntity.setVelocity(new Vector());
         itemEntity.setGravity(false);
         itemEntity.setInvulnerable(true);
-        ((EntityItem) ((CraftItem) itemEntity).getHandle()).age = -32768;
+        ((EntityItem) ((CraftItem) itemEntity).getHandle()).ao = -32768;
         itemEntity.setPickupDelay(32767);
         return itemEntity;
     }

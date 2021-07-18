@@ -7,8 +7,8 @@ import com.mojang.authlib.GameProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_16_R3.CraftOfflinePlayer;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftOfflinePlayer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 

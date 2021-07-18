@@ -6,7 +6,7 @@ import com.kicasmads.cs.event.ShopRemoveEvent;
 import com.kicasmads.cs.event.ShopTransactionEvent;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.server.v1_16_R3.NBTTagCompound;
+import net.minecraft.nbt.NBTTagCompound;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
