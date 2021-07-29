@@ -60,7 +60,6 @@ public class ChestShops extends JavaPlugin {
 
         PluginCommand shopsCommand = getCommand("shops");
         shopsCommand.setExecutor((sender, command, alias, args) -> {
-            sender.sendMessage(SkullCache.CACHE + "");
             if (!(sender instanceof Player)) {
                 sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
                 return true;
