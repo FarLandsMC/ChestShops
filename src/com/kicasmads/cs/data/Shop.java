@@ -5,7 +5,6 @@ import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopRemoveEvent;
 import com.kicasmads.cs.event.ShopTransactionEvent;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.nbt.NBTTagCompound;
 
 import org.bukkit.Bukkit;
@@ -22,8 +21,8 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.UUID;
 
 public class Shop {
-    private final ShopType    type;
-    private       GameProfile owner;
+    private final ShopType type;
+    private       UUID     owner;
 
     private final Location    sign;
     private final Location    chest;
@@ -38,7 +37,7 @@ public class Shop {
 
     private final ShopDisplay display;
 
-    public Shop(ShopType type, GameProfile owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
+    public Shop(ShopType type, UUID owner, Location sign, Location chest, ItemStack buyItem, ItemStack sellItem,
                 int buyAmount, int sellAmount) {
         this.type       = type;
         this.owner      = owner;
@@ -58,15 +57,8 @@ public class Shop {
 
     public Shop(NBTTagCompound tag) {
         type  = ShopType.values()[tag.getInt("type")];
-        UUID ownerId = UUID.fromString(tag.getString("owner"));
-        String ownerName = tag.getString("ownerName");
-        if(ownerName.isEmpty()){
-            OfflinePlayer player = Bukkit.getOfflinePlayer(ownerId);
-            if(player != null) {
-                ownerName = player.getName();
-            }
-        }
-        owner = new GameProfile(ownerId, ownerName);
+
+        owner     = UUID.fromString(tag.getString("owner"));
 
         sign  = Utils.locationFromNBT(tag.getCompound("signLocation"));
         chest = Utils.locationFromNBT(tag.getCompound("chestLocation"));
@@ -99,17 +91,20 @@ public class Shop {
         return type;
     }
 
-    public GameProfile getLazilyUpdatedOwner() {
-        owner = ChestShops.getDataHandler().getProfileUpdater().maybeUpdate(owner);
+    public OfflinePlayer getOwnerOfflinePlayer() {
+        return Bukkit.getOfflinePlayer(owner);
+    }
+
+    public UUID getOwner() {
         return owner;
     }
 
-    public GameProfile getCachedOwner() {
-        return owner;
+    public String getOwnerName() {
+        return getOwnerOfflinePlayer().getName();
     }
 
     public boolean isOwner(Player player) {
-        return owner.getId().equals(player.getUniqueId());
+        return owner.equals(player.getUniqueId());
     }
 
     public ItemStack getBuyItem() {
@@ -282,7 +277,7 @@ public class Shop {
             display.removeShopDisplay();
             ChestShops.error("Removing shop at ([" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " +
                     chest.getBlockY() + ", " + chest.getBlockZ() +
-                    "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getCachedOwner().getName());
+                    "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getOwnerName());
             if (sign.getBlock().getState() instanceof Sign) {
                 Sign signBlock = ((Sign) sign.getBlock().getState());
                 signBlock.setLine(0, ChatColor.RED + "" + ChatColor.BOLD + "[SHOP]");
@@ -310,8 +305,7 @@ public class Shop {
         shopTag.setInt("buyAmount", buyAmount);
         shopTag.setInt("sellAmount", sellAmount);
         shopTag.setInt("type", type.ordinal());
-        shopTag.setString("owner", owner.getId().toString());
-        shopTag.setString("ownerName", owner == null || owner.getName() == null ? "" : owner.getName());
+        shopTag.setString("owner", owner.toString());
         shopTag.set("sellItem", Utils.itemStackToNBT(sellItem));
         shopTag.set("buyItem",  Utils.itemStackToNBT(buyItem));
 

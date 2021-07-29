@@ -78,7 +78,7 @@ public class ShopBuilder {
     }
 
     private void createShop() {
-        Shop shop = new Shop(type, new GameProfile(owner.getUniqueId(), owner.getName()), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
+        Shop shop = new Shop(type, owner.getUniqueId(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
         ShopCreateEvent event = new ShopCreateEvent(owner, shop);
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);

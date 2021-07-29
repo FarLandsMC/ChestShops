@@ -68,7 +68,7 @@ public class DataHandler {
 	}
 
 	public List<Shop> getShops(UUID uuid) {
-		return shops.stream().filter(shop -> shop.getCachedOwner().getId().equals(uuid)).collect(Collectors.toList());
+		return shops.stream().filter(shop -> shop.getOwner().equals(uuid)).collect(Collectors.toList());
 	}
 
 	public List<Shop> getAllShops() {
@@ -139,6 +139,7 @@ public class DataHandler {
 				shopLocations.put(shop.getSignLocation(), shop);
 				shopLocations.put(shop.getChestLocation(), shop);
 			}
+			shops.stream().map(Shop::getOwner).distinct().forEach(SkullCache::update); // Update skull cache for all owners on update
 		}
 	}
 

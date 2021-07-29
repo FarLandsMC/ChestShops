@@ -1,24 +1,21 @@
 package com.kicasmads.cs.gui;
 
 import com.kicasmads.cs.ChestShops;
+import com.kicasmads.cs.data.SkullCache;
 import com.kicasmads.cs.data.Shop;
 
-import com.mojang.authlib.GameProfile;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_17_R1.CraftOfflinePlayer;
-import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 public class GuiGlobalView extends Gui {
     private final Map<UUID, List<Shop>> ownerGroupedShops;
-    private final List<GameProfile> shopOwners;
-    private GameProfile currentViewedOwner;
+    private final List<OfflinePlayer> shopOwners;
+    private OfflinePlayer currentViewedOwner;
     private int ownersPage, shopsPage;
 
     public GuiGlobalView() {
@@ -30,21 +27,21 @@ public class GuiGlobalView extends Gui {
         this.shopsPage = 0;
 
         ChestShops.getDataHandler().getAllShops().stream().filter(Shop::isNotEmpty).forEach(shop -> {
-            List<Shop> ownerShops = ownerGroupedShops.get(shop.getCachedOwner().getId());
+            List<Shop> ownerShops = ownerGroupedShops.get(shop.getOwner());
             if (ownerShops == null) {
                 ownerShops = new ArrayList<>();
                 ownerShops.add(shop);
-                ownerGroupedShops.put(shop.getCachedOwner().getId(), ownerShops);
+                ownerGroupedShops.put(shop.getOwner(), ownerShops);
 
                 // Intentionally refresh the profile
-                shopOwners.add(shop.getLazilyUpdatedOwner());
+                shopOwners.add(shop.getOwnerOfflinePlayer());
             } else
                 ownerShops.add(shop);
         });
 
         // Sort by username
         // Removed for now.  May add back later, if fixes bug.
-        // shopOwners.sort(Comparator.comparing(GameProfile::getName));
+         shopOwners.sort(Comparator.comparing(OfflinePlayer::getName));
     }
 
     private void changeOwnersPage(int move) {
@@ -62,7 +59,7 @@ public class GuiGlobalView extends Gui {
         if (currentViewedOwner == null) {
             if (shopOwners.size() <= 54) {
                 int slot = 0;
-                for (GameProfile owner : shopOwners) {
+                for (OfflinePlayer owner : shopOwners) {
                     displayOwner(slot, owner);
                     ++ slot;
                 }
@@ -83,7 +80,7 @@ public class GuiGlobalView extends Gui {
             }
         } else {
             displayShops(
-                    ownerGroupedShops.get(currentViewedOwner.getId()),
+                    ownerGroupedShops.get(currentViewedOwner.getUniqueId()),
                     false,
                     false,
                     shopsPage,
@@ -100,29 +97,21 @@ public class GuiGlobalView extends Gui {
         newInventory(54, "Shop Owners");
     }
 
-    private void displayShops(GameProfile owner) {
+    private void displayShops(OfflinePlayer owner) {
         currentViewedOwner = owner;
         shopsPage = 0;
         newInventory(54, owner.getName() + "'s Shops");
     }
 
-    private void displayOwner(int slot, GameProfile owner) {
-        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) head.getItemMeta();
-
-        try {
-            Constructor<CraftOfflinePlayer> constructor = CraftOfflinePlayer.class
-                    .getDeclaredConstructor(CraftServer.class, GameProfile.class);
-            constructor.setAccessible(true);
-            //noinspection JavaReflectionInvocation
-            meta.setOwningPlayer(constructor.newInstance(Bukkit.getServer(), owner));
-        } catch (Exception ex) {
-            ChestShops.error(ex);
-            ex.printStackTrace(System.err);
-        }
+    private void displayOwner(int slot, OfflinePlayer owner) {
+        ItemStack head = SkullCache.getHead(owner);
+        ItemMeta meta = head.getItemMeta();
 
         meta.setDisplayName(ChatColor.RESET + owner.getName());
-        meta.setLore(Collections.singletonList("Shops: " + ownerGroupedShops.get(owner.getId()).size()));
+        meta.setLore(List.of(
+            ChatColor.WHITE + "Click to View Shops.",
+            ChatColor.GRAY + "Shops: " + ownerGroupedShops.get(owner.getUniqueId()).size()
+        ));
         head.setItemMeta(meta);
         addActionItem(slot, head, () -> displayShops(owner));
     }

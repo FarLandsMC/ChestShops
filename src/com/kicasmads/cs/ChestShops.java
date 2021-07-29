@@ -3,12 +3,12 @@ package com.kicasmads.cs;
 import com.kicasmads.cs.data.DataHandler;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopType;
+import com.kicasmads.cs.data.SkullCache;
 import com.kicasmads.cs.event.CSEventHandler;
 import com.kicasmads.cs.gui.GuiGlobalView;
 import com.kicasmads.cs.gui.GuiHandler;
 import com.kicasmads.cs.gui.GuiShopsView;
 
-import com.mojang.authlib.GameProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -60,6 +60,7 @@ public class ChestShops extends JavaPlugin {
 
         PluginCommand shopsCommand = getCommand("shops");
         shopsCommand.setExecutor((sender, command, alias, args) -> {
+            sender.sendMessage(SkullCache.CACHE + "");
             if (!(sender instanceof Player)) {
                 sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
                 return true;
@@ -71,16 +72,15 @@ public class ChestShops extends JavaPlugin {
                 (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false, false)).openGui(player);
             } else {
                 if(args.length >= 1 && !args[0].equals("everyone")){
-                    GameProfile shopOwner = dataHandler.getAllShops()
+                    Shop shop = dataHandler.getAllShops()
                             .stream()
-                            .filter(shop -> shop.isNotEmpty() && shop.getCachedOwner().getName().equalsIgnoreCase(args[0]))
-                            .map(Shop::getCachedOwner)
+                            .filter(s -> s.isNotEmpty() && s.getOwnerName().equalsIgnoreCase(args[0]))
                             .findFirst()
                             .orElse(null);
 
-                    if(shopOwner != null) {
-                        String shopName = shopOwner.getName() + "'s Shops";
-                        (new GuiShopsView(dataHandler.getShops(shopOwner.getId()), shopName, true, false)).openGui(player);
+                    if(shop != null) {
+                        String shopName = shop.getOwnerName() + "'s Shops";
+                        (new GuiShopsView(dataHandler.getShops(shop.getOwner()), shopName, true, false)).openGui(player);
                         return true;
                     }
 
@@ -98,7 +98,7 @@ public class ChestShops extends JavaPlugin {
                         if("me".startsWith(args[0].toLowerCase())) {tabComplete.add("me");}
                         if("everyone".startsWith(args[0].toLowerCase())) {tabComplete.add("everyone");}
                         dataHandler.getAllShops().forEach(shop -> {
-                            String name = shop.getCachedOwner().getName();
+                            String name = shop.getOwnerName();
                             if(name == null){
                                 Location chest = shop.getChestLocation();
                                 error("Shop at [" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " + chest.getBlockY() + ", " + chest.getBlockZ() +"] - cached owner name missing");
