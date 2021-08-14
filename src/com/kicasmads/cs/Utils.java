@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Utils {
     public static final Runnable NO_ACTION = () -> {};
@@ -189,5 +190,12 @@ public class Utils {
         }
 
         return builder.toString();
+    }
+
+
+    public static List<String> filterStartingWith(String prefix, Collection<String> strings) {
+        return strings.stream()
+            .filter(s -> s != null && !s.isEmpty() && s.toLowerCase().startsWith(prefix.toLowerCase()))
+            .collect(Collectors.toList());
     }
 }

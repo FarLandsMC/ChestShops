@@ -63,7 +63,7 @@ public abstract class Gui {
     }
 
     protected void displayShop(int slot, Shop shop, boolean showTransaction, boolean showOwner, Consumer<Shop> shopAction) {
-        String name = ChatColor.RESET.toString() + shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
+        String name = ChatColor.WHITE.toString() + shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
                 " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem());
 
         ItemStack displayItem;

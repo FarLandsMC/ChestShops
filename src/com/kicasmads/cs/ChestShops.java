@@ -1,5 +1,7 @@
 package com.kicasmads.cs;
 
+import com.kicasmads.cs.command.CommandSearchShops;
+import com.kicasmads.cs.command.CommandShops;
 import com.kicasmads.cs.data.DataHandler;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopType;
@@ -58,106 +60,8 @@ public class ChestShops extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(guiHandler, this);
         Bukkit.getPluginManager().registerEvents(new CSEventHandler(), this);
 
-        PluginCommand shopsCommand = getCommand("shops");
-        shopsCommand.setExecutor((sender, command, alias, args) -> {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
-                return true;
-            }
-            Player player = (Player) sender;
-
-            boolean selfView = args.length == 1 && args[0].equals("me") && !ChestShops.getDataHandler().getShops(player).isEmpty();
-            if (selfView) {
-                (new GuiShopsView(dataHandler.getShops(player.getUniqueId()), "My Shops", false, false)).openGui(player);
-            } else {
-                if(args.length >= 1 && !args[0].equals("everyone")){
-                    Shop shop = dataHandler.getAllShops()
-                            .stream()
-                            .filter(s -> s.isNotEmpty() && s.getOwnerName().equalsIgnoreCase(args[0]))
-                            .findFirst()
-                            .orElse(null);
-
-                    if(shop != null) {
-                        String shopName = shop.getOwnerName() + "'s Shops";
-                        (new GuiShopsView(dataHandler.getShops(shop.getOwner()), shopName, true, false)).openGui(player);
-                        return true;
-                    }
-
-                    player.sendMessage(ChatColor.RED + "The player \"" + args[0] + "\" does not have any shops.");
-                }
-                (new GuiGlobalView()).openGui(player);
-            }
-
-            return true;
-        });
-        shopsCommand.setTabCompleter(
-                (sender, command, alias, args) -> {
-                    if(args.length == 1) {
-                        List<String> tabComplete = new ArrayList<>();
-                        if("me".startsWith(args[0].toLowerCase())) {tabComplete.add("me");}
-                        if("everyone".startsWith(args[0].toLowerCase())) {tabComplete.add("everyone");}
-                        dataHandler.getAllShops().forEach(shop -> {
-                            String name = shop.getOwnerName();
-                            if(name == null){
-                                Location chest = shop.getChestLocation();
-                                error("Shop at [" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " + chest.getBlockY() + ", " + chest.getBlockZ() +"] - cached owner name missing");
-                                return;
-                            }
-                            if (name.toLowerCase().startsWith(args[0].toLowerCase())) {
-                                tabComplete.add(name);
-                            }
-                        });
-                        return tabComplete;
-                    }
-                    return Collections.emptyList();
-
-                }
-        );
-
-        PluginCommand searchshopsCommand = getCommand("searchshops");
-        searchshopsCommand.setExecutor((sender, command, alias, args) -> {
-            if (args.length == 0)
-                return false;
-
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
-                return true;
-            }
-            Player player = (Player) sender;
-
-            boolean searchBuy = args.length > 1 && "buy".equalsIgnoreCase(args[1]);
-            args[0] = args[0].toLowerCase();
-            List<Shop> shops = dataHandler.getAllShops().stream()
-                    .filter(shop -> searchBuy == (shop.getType() == ShopType.BUY) &&
-                            Utils.searchableName(searchBuy ? shop.getBuyItem() : shop.getSellItem()).contains(args[0]))
-                    .collect(Collectors.toList());
-            if (shops.isEmpty()) {
-                player.sendMessage(ChatColor.RED + "There are no shops that sell this item.");
-                return true;
-            }
-
-            (new GuiShopsView(shops, "Shops", true, true)).openGui(player);
-            return true;
-        });
-        searchshopsCommand.setTabCompleter((sender, command, alias, args) -> {
-            switch (args.length) {
-                case 1: {
-                    List<String> suggestions = Arrays.stream(Material.values())
-                            .map(Utils::formattedName)
-                            .collect(Collectors.toCollection(ArrayList::new));
-                    suggestions.addAll(Utils.ENCHANTMENT_NAMES);
-                    return suggestions.stream()
-                            .filter(name -> name.startsWith(args[0]))
-                            .collect(Collectors.toList());
-                }
-
-                case 2:
-                    return Arrays.asList("buy", "sell");
-
-                default:
-                    return Collections.emptyList();
-            }
-        });
+        getCommand("shops").setExecutor(new CommandShops());
+        getCommand("searchshops").setExecutor(new CommandSearchShops());
     }
 
     @Override

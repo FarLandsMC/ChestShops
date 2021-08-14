@@ -7,7 +7,7 @@ version: 1.0
 commands:
   shops:
     description: View a player's shops
-    usage: /shops [me|playername]
+    usage: /shops [me|everyone|playername]
   searchshops:
     description: Search for a specific item being sold or bought
     usage: /searchshops <item> [sell|buy]

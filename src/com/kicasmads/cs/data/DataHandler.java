@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -149,5 +150,9 @@ public class DataHandler {
 			if (builderCache.remove(sign) != null && builder.getOwner().isOnline())
 				builder.getOwner().sendMessage(ChatColor.RED + "You did not create your shop fast enough! You will need to remake it.");
 		}, 2 * 60 * 20);
+	}
+
+	public Collection<OfflinePlayer> getAllOwners() {
+		return getAllShops().stream().map(Shop::getOwnerOfflinePlayer).distinct().collect(Collectors.toList());
 	}
 }

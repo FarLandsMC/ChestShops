@@ -25,8 +25,8 @@ public class GuiGlobalView extends Gui {
         this.currentViewedOwner = null;
         this.ownersPage = 0;
         this.shopsPage = 0;
-
-        ChestShops.getDataHandler().getAllShops().stream().filter(Shop::isNotEmpty).forEach(shop -> {
+        // TODO: Don't show chests that are out of stock (Too much lag to load the inventories)
+        ChestShops.getDataHandler().getAllShops().stream().forEach(shop -> {
             List<Shop> ownerShops = ownerGroupedShops.get(shop.getOwner());
             if (ownerShops == null) {
                 ownerShops = new ArrayList<>();

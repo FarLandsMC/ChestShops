@@ -58,7 +58,7 @@ public class Shop {
     public Shop(NBTTagCompound tag) {
         type  = ShopType.values()[tag.getInt("type")];
 
-        owner     = UUID.fromString(tag.getString("owner"));
+        owner = UUID.fromString(tag.getString("owner"));
 
         sign  = Utils.locationFromNBT(tag.getCompound("signLocation"));
         chest = Utils.locationFromNBT(tag.getCompound("chestLocation"));
