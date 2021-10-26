@@ -24,6 +24,7 @@
     </pluginRepositories>
 
     <build>
+        <finalName>ChestShops</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -76,10 +77,6 @@
                         </goals>
                         <configuration>
                             <relocations>
-                                <relocation>
-                                    <pattern>net.kyori</pattern>
-                                    <shadedPattern>com.kicasmads.relocations.net.kyori</shadedPattern>
-                                </relocation>
                                 <relocation>
                                     <pattern>org.intellij</pattern>
                                     <shadedPattern>com.kicasmads.relocations.org.intellij</shadedPattern>
