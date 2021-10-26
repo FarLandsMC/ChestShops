@@ -3,7 +3,7 @@ main: com.kicasmads.cs.ChestShops
 name: ChestShops
 description: A simple plugin for chest shops
 authors: [Kishiko73, maddymakesgames, xCassyx, funnyboy_roks, Majekdor]
-version: 1.0
+version: ${project.version}
 commands:
   shops:
     description: View a player's shops
