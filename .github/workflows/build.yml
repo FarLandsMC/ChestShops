@@ -34,7 +34,7 @@ jobs:
 
     - name: get project version
       id: project
-      if: ${{ runner.os == 'Linux' && github.event_name == 'push' && github.ref == 'refs/heads/master')}}
+      if: ${{ runner.os == 'Linux' && github.event_name == 'push' && github.ref == 'refs/heads/master'}}
       run: echo ::set-output name=version::$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
 
     - name: publish with maven
