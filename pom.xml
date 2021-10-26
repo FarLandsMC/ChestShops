@@ -12,7 +12,7 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/Majekdor/ChestShops</url>
+            <url>https://maven.pkg.github.com/FarLandsMC/ChestShops</url>
         </repository>
     </distributionManagement>
 
@@ -99,8 +99,8 @@
     </build>
     <packaging>jar</packaging>
 
-    <name>RegionProtection</name>
-    <description>Protect your Minecraft world with regions and flags.</description>
+    <name>ChestShops</name>
+    <description>Buy and sell items using chests.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
