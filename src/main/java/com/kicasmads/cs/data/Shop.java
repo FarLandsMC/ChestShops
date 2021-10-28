@@ -5,8 +5,11 @@ import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopRemoveEvent;
 import com.kicasmads.cs.event.ShopTransactionEvent;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Chest;
@@ -153,7 +156,10 @@ public class Shop {
 
     public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
         if(removeIfInvalidChest()){
-            player.sendMessage(ChatColor.RED + "This shop has an error.");
+            player.sendMessage(
+                Component.text("This shop has an error.")
+                    .color(NamedTextColor.RED)
+            );
             return;
         }
         Chest shopChest = (Chest) chest.getBlock().getState();
@@ -161,12 +167,18 @@ public class Shop {
 
         // Make sure shop can pay out
         if (!chestinventory.containsAtLeast(sellItem, sellAmount)) {
-            player.sendMessage(ChatColor.RED + "This shop is out of stock. Come back later.");
+            player.sendMessage(
+                Component.text("This shop is out of stock. Come back later.")
+                    .color(NamedTextColor.RED)
+            );
             return;
         }
 
         if (chestinventory.firstEmpty() == -1 && Utils.firstInsertableStack(chestinventory, buyItem) == -1) {
-            player.sendMessage(ChatColor.RED + "Chest is full and cannot accept any more transactions");
+            player.sendMessage(
+                Component.text("Chest is full and cannot accept any more transactions")
+                    .color(NamedTextColor.RED)
+            );
             return;
         }
 
@@ -174,14 +186,19 @@ public class Shop {
 
         // Make sure player can pay
         if (!playerInventory.containsAtLeast(buyItem, buyAmount)) {
-            player.sendMessage(ChatColor.RED + "You need " + buyAmount + " " + Utils.getItemName(buyItem) +
-                    " in order to buy this.");
+            player.sendMessage(
+                Component.text("You need " + buyAmount + " " + Utils.getItemName(buyItem) + " in order to buy this.")
+                    .color(NamedTextColor.RED)
+            );
             return;
         }
 
         // The player must be holding the buy item
         if (requireHoldingBuyItem && !playerInventory.getItemInMainHand().isSimilar(buyItem)) {
-            player.sendMessage(ChatColor.RED + "You must be holding item this shop requires from you.");
+            player.sendMessage(
+                Component.text("You must be holding item this shop requires from you.")
+                    .color(NamedTextColor.RED)
+            );
             return;
         }
 
@@ -238,7 +255,10 @@ public class Shop {
                 playerInv.addItem(stack);
             else {
                 player.getWorld().dropItem(player.getLocation(), stack);
-                player.sendMessage(ChatColor.RED + "Your inventory was full, so you dropped the item.");
+                player.sendMessage(
+                    Component.text("Your inventory was full, so you dropped the item.")
+                        .color(NamedTextColor.RED)
+                );
             }
         }
     }
@@ -278,10 +298,10 @@ public class Shop {
                     "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getOwnerName());
             if (sign.getBlock().getState() instanceof Sign) {
                 Sign signBlock = ((Sign) sign.getBlock().getState());
-                signBlock.setLine(0, ChatColor.RED + "" + ChatColor.BOLD + "[SHOP]");
-                signBlock.setLine(1, ChatColor.RED + "This chest");
-                signBlock.setLine(2, ChatColor.RED + "is missing.");
-                signBlock.setLine(3, ChatColor.RED + "Shop Removed.");
+                signBlock.line(0, Component.text("[SHOP]").style(Style.style(NamedTextColor.RED, TextDecoration.BOLD)));
+                signBlock.line(1, Component.text("This chest").color(NamedTextColor.RED));
+                signBlock.line(2, Component.text("is missing.").color(NamedTextColor.RED));
+                signBlock.line(3, Component.text("Shop Removed.").color(NamedTextColor.RED));
                 signBlock.update();
             }
             if(removeFromList){

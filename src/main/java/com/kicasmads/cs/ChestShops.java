@@ -3,26 +3,14 @@ package com.kicasmads.cs;
 import com.kicasmads.cs.command.CommandSearchShops;
 import com.kicasmads.cs.command.CommandShops;
 import com.kicasmads.cs.data.DataHandler;
-import com.kicasmads.cs.data.Shop;
-import com.kicasmads.cs.data.ShopType;
-import com.kicasmads.cs.data.SkullCache;
 import com.kicasmads.cs.event.CSEventHandler;
-import com.kicasmads.cs.gui.GuiGlobalView;
 import com.kicasmads.cs.gui.GuiHandler;
-import com.kicasmads.cs.gui.GuiShopsView;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class ChestShops extends JavaPlugin {
     private final DataHandler dataHandler;

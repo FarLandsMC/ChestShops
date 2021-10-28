@@ -21,17 +21,11 @@ public class DataHandler {
 	private final List<Shop> shops;
 	private final Map<Location, Shop> shopLocations;
 	private final Map<Location, ShopBuilder> builderCache;
-	private final ProfileUpdater profileUpdater;
 
 	public DataHandler() {
 		shops = new ArrayList<>();
 		shopLocations = new HashMap<>();
 		builderCache = new HashMap<>();
-		profileUpdater = new ProfileUpdater(5);
-	}
-
-	public ProfileUpdater getProfileUpdater() {
-		return profileUpdater;
 	}
 
 	public ShopBuilder getCachedBuilder(Location sign) {
@@ -138,7 +132,7 @@ public class DataHandler {
 				shopLocations.put(shop.getSignLocation(), shop);
 				shopLocations.put(shop.getChestLocation(), shop);
 			}
-			shops.stream().map(Shop::getOwner).distinct().forEach(SkullCache::update); // Update skull cache for all owners on update
+//			shops.stream().map(Shop::getOwner).distinct().forEach(SkullCache::update); // Update skull cache for all owners on update
 		}
 	}
 

@@ -1,9 +1,12 @@
 package com.kicasmads.cs.gui;
 
 import com.kicasmads.cs.ChestShops;
-import com.kicasmads.cs.data.SkullCache;
+import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.data.Shop;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -40,7 +43,6 @@ public class GuiGlobalView extends Gui {
         });
 
         // Sort by username
-        // Removed for now.  May add back later, if fixes bug.
          shopOwners.sort(Comparator.comparing(OfflinePlayer::getName));
     }
 
@@ -104,13 +106,13 @@ public class GuiGlobalView extends Gui {
     }
 
     private void displayOwner(int slot, OfflinePlayer owner) {
-        ItemStack head = SkullCache.getHead(owner);
+        ItemStack head = Utils.getHead(owner);
         ItemMeta meta = head.getItemMeta();
 
-        meta.setDisplayName(ChatColor.RESET + owner.getName());
-        meta.setLore(List.of(
-            ChatColor.WHITE + "Click to View Shops.",
-            ChatColor.GRAY + "Shops: " + ownerGroupedShops.get(owner.getUniqueId()).size()
+        meta.displayName(Component.text(owner.getName()).style(Style.empty()));
+        meta.lore(List.of(
+            Component.text("Click to View Shops.").color(NamedTextColor.WHITE),
+            Component.text("Shops: " + ownerGroupedShops.get(owner.getUniqueId()).size()).color(NamedTextColor.GRAY)
         ));
         head.setItemMeta(meta);
         addActionItem(slot, head, () -> displayShops(owner));

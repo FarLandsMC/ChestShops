@@ -1,17 +1,18 @@
 package com.kicasmads.cs;
 
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.minecraft.world.entity.item.EntityItem;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftItem;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
@@ -123,7 +124,6 @@ public class Utils {
     }
 
     public static Location locationFromNBT(CompoundBinaryTag nbt) {
-        ChestShops.error(nbt.getString("world"));
         return new Location(Bukkit.getWorld(UUID.fromString(nbt.getString("world"))), nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
     }
 
@@ -141,7 +141,7 @@ public class Utils {
         itemEntity.setVelocity(new Vector());
         itemEntity.setGravity(false);
         itemEntity.setInvulnerable(true);
-        ((EntityItem) ((CraftItem) itemEntity).getHandle()).ao = -32768;
+        itemEntity.setWillAge(false);
         itemEntity.setPickupDelay(32767);
         return itemEntity;
     }
@@ -193,5 +193,17 @@ public class Utils {
         return strings.stream()
             .filter(s -> s != null && !s.isEmpty() && s.toLowerCase().startsWith(prefix.toLowerCase()))
             .collect(Collectors.toList());
+    }
+
+    public static ItemStack getHead(OfflinePlayer owner) {
+
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+
+        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        meta.setOwningPlayer(owner);
+        skull.setItemMeta(meta);
+
+        return skull;
+
     }
 }

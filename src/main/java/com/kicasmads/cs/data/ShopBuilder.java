@@ -4,6 +4,8 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.event.ShopCreateEvent;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -65,9 +67,9 @@ public class ShopBuilder {
 
     private void prompt() {
         if (buyItem == null) {
-            owner.sendMessage(ChatColor.GOLD + "Please left-click the sign with the item you wish to buy.");
+            owner.sendMessage(Component.text("Please left-click the sign with the item you wish to buy.").color(NamedTextColor.GOLD));
         } else if (sellItem == null)
-            owner.sendMessage(ChatColor.GOLD + "Please left-click the sign with the item you wish to sell.");
+            owner.sendMessage(Component.text("Please left-click the sign with the item you wish to sell.").color(NamedTextColor.GOLD));
         else {
             createShop();
             return;
@@ -88,13 +90,14 @@ public class ShopBuilder {
         formatSign(false);
 
         ChestShops.getDataHandler().addShop(shop, chest, sign);
-        owner.sendMessage(ChatColor.GREEN + "Shop successfully created!");
+        owner.sendMessage(Component.text("Shop successfully created!").color(NamedTextColor.GREEN));
         owner.playSound(owner.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
     }
 
     private void formatSign(boolean red) {
         Sign signBlock = (Sign) sign.getBlock().getState();
 
+        // TODO: Switch to adventure chat components
         signBlock.setLine(0, (red ? ChatColor.RED.toString() : "") + ChatColor.BOLD + ChestShops.SHOP_HEADER);
         switch(type) {
             case SELL:
