@@ -6,13 +6,15 @@ import com.kicasmads.cs.data.DataHandler;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopType;
 import com.kicasmads.cs.gui.GuiShopsView;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +31,10 @@ public class CommandSearchShops implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd,
+                             @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "You must be in-game to use this command.");
+            sender.sendMessage(Component.text("You must be in-game to use this command.").color(NamedTextColor.RED));
             return true;
         }
 
@@ -50,7 +53,7 @@ public class CommandSearchShops implements CommandExecutor, TabCompleter {
             .collect(Collectors.toList());
 
         if (shops.isEmpty()) {
-            player.sendMessage(ChatColor.RED + "There are no shops that sell this item.");
+            player.sendMessage(Component.text("There are no shops that sell this item.").color(NamedTextColor.RED));
             return true;
         }
 
@@ -64,7 +67,8 @@ public class CommandSearchShops implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd,
+                                      @NotNull String label, @NotNull String[] args) {
         switch (args.length) {
             case 1:
                 List<String> suggestions = Arrays.stream(Material.values())

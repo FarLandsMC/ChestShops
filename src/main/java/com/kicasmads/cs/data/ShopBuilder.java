@@ -6,7 +6,7 @@ import com.kicasmads.cs.event.ShopCreateEvent;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Sign;
@@ -34,12 +34,8 @@ public class ShopBuilder {
         this.sellItem = null;
 
         switch (type) {
-            case BUY:
-                sellItem = ChestShops.getCurrencyStack();
-                break;
-            case SELL:
-                buyItem = ChestShops.getCurrencyStack();
-                break;
+            case BUY -> sellItem = ChestShops.getCurrencyStack();
+            case SELL -> buyItem = ChestShops.getCurrencyStack();
         }
 
         formatSign(true);
@@ -97,24 +93,37 @@ public class ShopBuilder {
     private void formatSign(boolean red) {
         Sign signBlock = (Sign) sign.getBlock().getState();
 
-        // TODO: Switch to adventure chat components
-        signBlock.setLine(0, (red ? ChatColor.RED.toString() : "") + ChatColor.BOLD + ChestShops.SHOP_HEADER);
-        switch(type) {
-            case SELL:
-                signBlock.setLine(1, (red ? ChatColor.RED : "") + "Selling: " + (red ? ChatColor.BOLD : "") + sellAmount);
-                signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + buyAmount + " " +
-                        Utils.getItemName(buyItem) + (buyAmount > 1 ? "s" : ""));
-                break;
-            case BUY:
-                signBlock.setLine(1, (red ? ChatColor.RED : "") + "Buying: " + (red ? ChatColor.BOLD : "") + buyAmount);
-                signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + sellAmount + " " +
-                        Utils.getItemName(sellItem) + (sellAmount > 1 ? "s" : ""));
-                break;
-            case BARTER:
-                signBlock.setLine(1, (red ? ChatColor.RED : "") + "Bartering");
-                signBlock.setLine(2, (red ? ChatColor.RED : ChatColor.GREEN) + "" + buyAmount + " for " + sellAmount);
+        signBlock.line(0, ChestShops.SHOP_HEADER.decorate(TextDecoration.BOLD)
+            .color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
+        switch (type) {
+            case SELL -> {
+                signBlock.line(1,
+                    Component.text("Selling: ").color(red ? NamedTextColor.RED : NamedTextColor.BLACK)
+                        .append(Component.text(sellAmount).decoration(TextDecoration.BOLD, red))
+                );
+                signBlock.line(2,
+                    Component.text(buyAmount + " ").color(red ? NamedTextColor.RED : NamedTextColor.GREEN)
+                        .append(Component.text(Utils.getItemName(buyItem)  + (buyAmount > 1 ? "s" : "")))
+                );
+            }
+            case BUY -> {
+                signBlock.line(1,
+                    Component.text("Buying: ").color(red ? NamedTextColor.RED : NamedTextColor.BLACK)
+                        .append(Component.text(buyAmount).decoration(TextDecoration.BOLD, red))
+                );
+                signBlock.line(2,
+                    Component.text(sellAmount + " ").color(red ? NamedTextColor.RED : NamedTextColor.GREEN)
+                        .append(Component.text(Utils.getItemName(sellItem)  + (sellAmount > 1 ? "s" : "")))
+                );
+            }
+            case BARTER -> {
+                signBlock.line(1, Component.text("Bartering")
+                    .color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
+                signBlock.line(2, Component.text(buyAmount + " for " + sellAmount)
+                        .color(red ? NamedTextColor.RED : NamedTextColor.GREEN));
+            }
         }
-        signBlock.setLine(3, (red ? ChatColor.RED : "") + owner.getName());
+        signBlock.line(3, Component.text(owner.getName()).color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
         signBlock.update();
     }
 

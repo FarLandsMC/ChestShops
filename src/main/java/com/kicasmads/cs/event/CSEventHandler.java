@@ -7,8 +7,10 @@ import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.data.ShopBuilder;
 import com.kicasmads.cs.data.ShopType;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -30,13 +32,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+
 public class CSEventHandler implements Listener {
     @EventHandler(ignoreCancelled=true)
     public void onSignChange(SignChangeEvent event) {
         Player player = event.getPlayer();
-        String[] lines = event.getLines();
+        List<Component> lines = event.lines();
+        PlainTextComponentSerializer plainText = PlainTextComponentSerializer.builder().build();
 
-        if (lines.length == 4 && ChestShops.SHOP_HEADER.equalsIgnoreCase(lines[0]) && event.getBlock().getBlockData() instanceof WallSign) {
+        if (lines.size() == 4 && ChestShops.SHOP_HEADER.equals(lines.get(0)) && event.getBlock().getBlockData() instanceof WallSign) {
             // Make sure the sign is actually attached to a chest
             Block attachedTo = event.getBlock().getRelative(((WallSign)event.getBlock().getBlockData()).getFacing().getOppositeFace());
             if (attachedTo.getType() != Material.CHEST)
@@ -48,41 +53,49 @@ public class CSEventHandler implements Listener {
 
             Block above = attachedTo.getRelative(BlockFace.UP);
             if (above != null && above.getType() != Material.AIR) {
-                player.sendMessage(ChatColor.RED + "You must have an air block above the chest to create a shop.");
+                player.sendMessage(Component.text("You must have an air block above the chest to create a shop.").color(RED));
                 return;
             }
 
             int buyAmount, sellAmount;
 
             try {
-                buyAmount = Integer.parseInt(lines[1]);
+                buyAmount = Integer.parseInt(plainText.serialize(lines.get(1)));
             } catch (NumberFormatException ex) {
-                player.sendMessage(ChatColor.RED + "The number you entered for the buy amount is invalid.");
+                player.sendMessage(Component.text("The number you entered for the buy amount is invalid.").color(RED));
                 return;
             }
 
             try {
-                sellAmount = Integer.parseInt(lines[2]);
+                sellAmount = Integer.parseInt(plainText.serialize(lines.get(2)));
             } catch (NumberFormatException ex) {
-                player.sendMessage(ChatColor.RED + "The number you entered for the sell amount is invalid.");
+                player.sendMessage(Component.text("The number you entered for the sell amount is invalid.").color(RED));
                 return;
             }
 
             if (buyAmount <= 0 || sellAmount <= 0) {
-                player.sendMessage(ChatColor.RED + "The buy counts and sell amounts must be greater than or equal to zero.");
+                player.sendMessage(Component.text("The buy counts and sell amounts must be greater than or equal to zero.").color(RED));
                 return;
             }
 
-            ShopType type = Utils.valueOfFormattedName(lines[3], ShopType.class);
+            ShopType type = null;
+            String typeString = plainText.serialize(lines.get(3));
+            if (typeString.equalsIgnoreCase("sell"))
+                type = ShopType.SELL;
+            else if (typeString.equalsIgnoreCase("buy"))
+                type = ShopType.BUY;
+            else if (typeString.equalsIgnoreCase("barter"))
+                type = ShopType.BARTER;
             if (type == null) {
-                player.sendMessage(ChatColor.RED + "Invalid shop type: \"" + lines[3] + "\". Valid shop types include: " +
-                        Arrays.stream(ShopType.values()).map(Utils::formattedName).collect(Collectors.joining(", ")));
+                player.sendMessage(Component.text("Invalid shop type: \"" + typeString + "\". Valid shop types include: " +
+                        Arrays.stream(ShopType.values()).map(Utils::formattedName).collect(Collectors.joining(", "))).color(RED));
                 return;
             }
 
             // Run a few ticks later so that the sign updates correctly
+            ShopType finalType = type;
             Bukkit.getScheduler().runTaskLater(ChestShops.getInstance(), () -> {
-                ShopBuilder builder = new ShopBuilder(type, player, event.getBlock().getLocation(),
+                ShopBuilder builder = new ShopBuilder(finalType, player, event.getBlock().getLocation(),
                         attachedTo.getLocation(), buyAmount, sellAmount);
                 ChestShops.getDataHandler().cacheBuilder(event.getBlock().getLocation(), builder);
             }, 1);
@@ -102,7 +115,7 @@ public class CSEventHandler implements Listener {
             Shop shop = ChestShops.getDataHandler().getShop(event.getBlock().getLocation());
             if (shop != null) {
                 if (!shop.isOwner(event.getPlayer()) && !event.getPlayer().hasPermission("cs.shops.destroy-unowned")) {
-                    event.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to remove this shop.");
+                    event.getPlayer().sendMessage(Component.text("You do not have permission to remove this shop.").color(RED));
                     event.setCancelled(true);
                     return;
                 }
@@ -111,13 +124,13 @@ public class CSEventHandler implements Listener {
                 ChestShops.getInstance().getServer().getPluginManager().callEvent(removeEvent);
                 if (!removeEvent.isCancelled()) {
                     ChestShops.getDataHandler().removeShop(shop);
-                    event.getPlayer().sendMessage(ChatColor.GOLD + "This shop has been removed.");
+                    event.getPlayer().sendMessage(Component.text("This shop has been removed.").color(NamedTextColor.GOLD));
                 }
 
                 event.setCancelled(removeEvent.isCancelled());
             }
         } else if (event.getBlock().getType() == Material.CHEST && ChestShops.getDataHandler().getShop(event.getBlock().getLocation()) != null) {
-            event.getPlayer().sendMessage(ChatColor.RED + "If you wish to remove this shop, please break the sign instead.");
+            event.getPlayer().sendMessage(Component.text("If you wish to remove this shop, please break the sign instead.").color(RED));
             event.setCancelled(true);
         }
     }
@@ -133,7 +146,7 @@ public class CSEventHandler implements Listener {
                     builder.update(stack);
                     return true;
                 } else
-                    player.sendMessage(ChatColor.RED + "You cannot set the trade of a shop you do not own.");
+                    player.sendMessage(Component.text("You cannot set the trade of a shop you do not own.").color(RED));
             }
         }
 
@@ -152,7 +165,8 @@ public class CSEventHandler implements Listener {
 
                 if (event.getPlayer().isSneaking() && shop.isOwner(event.getPlayer())) {
                     shop.getDisplay().cycleDisplayType();
-                    event.getPlayer().sendMessage(ChatColor.GOLD + "Shop display set to " + shop.getDisplay().getDisplayString() + ".");
+                    event.getPlayer().sendMessage(Component.text("Shop display set to " + shop.getDisplay().getDisplayString() + ".")
+                        .color(NamedTextColor.GOLD));
                     event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
                 } else
                     shop.tryTransaction(event.getPlayer(), true);
@@ -212,7 +226,8 @@ public class CSEventHandler implements Listener {
                 !(event.getBlock().getLocation().subtract(0, 1, 0).getBlock().getBlockData() instanceof WallSign) // Block placed is above shop's sign
         ) {
             shopBelow.getDisplay().setDisplayType(DisplayType.OFF);
-            event.getPlayer().sendMessage(ChatColor.GOLD + "Shop display set to off as you placed a block above it.");
+            event.getPlayer().sendMessage(Component.text("Shop display set to off as you placed a block above it.")
+                .color(NamedTextColor.GOLD));
         }
         if(shopOn != null && event.getBlockAgainst().getBlockData() instanceof WallSign){
             event.setCancelled(true);

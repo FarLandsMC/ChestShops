@@ -7,7 +7,6 @@ import com.kicasmads.cs.data.Shop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
@@ -48,12 +47,12 @@ public class GuiGlobalView extends Gui {
 
     private void changeOwnersPage(int move) {
         ownersPage += move;
-        newInventory(54, "Shop Owners");
+        newInventory(54, Component.text("Shop Owners"));
     }
 
     private void changeShopsPage(int move) {
         shopsPage += move;
-        newInventory(54, currentViewedOwner.getName() + "'s Shops");
+        newInventory(54, Component.text(currentViewedOwner.getName() + "'s Shops"));
     }
 
     @Override
@@ -71,14 +70,16 @@ public class GuiGlobalView extends Gui {
                 }
 
                 if (ownersPage == 0)
-                    addLabel(45, Material.REDSTONE_BLOCK, ChatColor.RED + "No Previous Page");
+                    addLabel(45, Material.REDSTONE_BLOCK, Component.text("No Previous Page").color(NamedTextColor.RED));
                 else
-                    addActionItem(45, Material.EMERALD_BLOCK, ChatColor.GREEN + "Previous Page", () -> changeOwnersPage(-1));
+                    addActionItem(45, Material.EMERALD_BLOCK,
+                        Component.text("Previous Page").color(NamedTextColor.GREEN), () -> changeOwnersPage(-1));
 
                 if ((ownersPage + 1) * 45 >= shopOwners.size())
-                    addLabel(53, Material.REDSTONE_BLOCK, ChatColor.RED + "No Next Page");
+                    addLabel(53, Material.REDSTONE_BLOCK, Component.text("No Next Page").color(NamedTextColor.RED));
                 else
-                    addActionItem(53, Material.EMERALD_BLOCK, ChatColor.GREEN + "Next Page", () -> changeOwnersPage(1));
+                    addActionItem(53, Material.EMERALD_BLOCK,
+                        Component.text("Next Page").color(NamedTextColor.GREEN), () -> changeOwnersPage(1));
             }
         } else {
             displayShops(
@@ -90,19 +91,19 @@ public class GuiGlobalView extends Gui {
                     this::changeShopsPage,
                     shop -> shop.tryTransaction(user, false)
             );
-            addActionItem(49, Material.NETHER_STAR, ChatColor.RESET + "Back", this::displayOwners);
+            addActionItem(49, Material.NETHER_STAR, Component.text("Back"), this::displayOwners);
         }
     }
 
     private void displayOwners() {
         currentViewedOwner = null;
-        newInventory(54, "Shop Owners");
+        newInventory(54, Component.text("Shop Owners"));
     }
 
     private void displayShops(OfflinePlayer owner) {
         currentViewedOwner = owner;
         shopsPage = 0;
-        newInventory(54, owner.getName() + "'s Shops");
+        newInventory(54, Component.text(owner.getName() + "'s Shops"));
     }
 
     private void displayOwner(int slot, OfflinePlayer owner) {

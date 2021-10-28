@@ -85,36 +85,27 @@ public class ShopDisplay {
         buyItem.setAmount(shop.getBuyAmount());
         sellItem.setAmount(shop.getSellAmount());
         switch (shop.getType()) {
-            case BUY:
-                displayItem(location.clone().add(0.5, 0.875, 0.5), buyItem, true);
-                break;
-
-            case SELL:
-                displayItem(location.clone().add(0.5, 0.875, 0.5), sellItem, false);
-                break;
-
-            case BARTER: {
+            case BUY -> displayItem(location.clone().add(0.5, 0.875, 0.5), buyItem, true);
+            case SELL -> displayItem(location.clone().add(0.5, 0.875, 0.5), sellItem, false);
+            case BARTER -> {
                 // Display it so that the buy item is on the left and the sell item is on the right
                 switch (((WallSign) shop.getSignLocation().getBlock().getBlockData()).getFacing()) {
-                    case NORTH:
+                    case NORTH -> {
                         displayItem(location.clone().add(0.75, 0.875, 0.5), buyItem, true);
                         displayItem(location.clone().add(0.25, 0.875, 0.5), sellItem, false);
-                        break;
-
-                    case SOUTH:
+                    }
+                    case SOUTH -> {
                         displayItem(location.clone().add(0.25, 0.875, 0.5), buyItem, true);
                         displayItem(location.clone().add(0.75, 0.875, 0.5), sellItem, false);
-                        break;
-
-                    case EAST:
+                    }
+                    case EAST -> {
                         displayItem(location.clone().add(0.5, 0.875, 0.25), buyItem, true);
                         displayItem(location.clone().add(0.5, 0.875, 0.75), sellItem, false);
-                        break;
-
-                    case WEST:
+                    }
+                    case WEST -> {
                         displayItem(location.clone().add(0.5, 0.875, 0.75), buyItem, true);
                         displayItem(location.clone().add(0.5, 0.875, 0.25), sellItem, false);
-                        break;
+                    }
                 }
             }
         }
@@ -153,15 +144,14 @@ public class ShopDisplay {
         itemFrame.addScoreboardTag("noKill");
 
         switch (shop.getType()) {
-            case SELL:
+            case SELL -> {
                 itemFrame.setItem(sellStack);
                 sellItemEntity = itemFrame.getUniqueId();
-
-                break;
-            case BUY:
+            }
+            case BUY -> {
                 itemFrame.setItem(buyStack);
                 buyItemEntity = itemFrame.getUniqueId();
-                break;
+            }
         }
     }
 
@@ -203,14 +193,12 @@ public class ShopDisplay {
             Location loc = location.clone().subtract(0, .5, 0);
             loc.setPitch(0);
             switch (((WallSign) shop.getSignLocation().getBlock().getBlockData()).getFacing()) {
-                case NORTH:
-                case SOUTH: {
+                case NORTH, SOUTH -> {
                     loc.add(.14, 0, 1.0625);
                     loc.setYaw(180);
                     armorStand = (ArmorStand) location.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
-                    break;
                 }
-                default: {
+                default -> {
                     loc.add(1.0625, 0, .85);
                     loc.setYaw(90);
                     armorStand = (ArmorStand) location.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
@@ -300,5 +288,4 @@ public class ShopDisplay {
             .putString("glassCase", glassCaseAS == null ? "none" : glassCaseAS.toString())
             .build();
     }
-
 }

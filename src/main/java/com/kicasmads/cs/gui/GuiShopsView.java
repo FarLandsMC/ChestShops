@@ -1,6 +1,7 @@
 package com.kicasmads.cs.gui;
 
 import com.kicasmads.cs.data.Shop;
+import net.kyori.adventure.text.Component;
 
 import java.util.List;
 
@@ -22,11 +23,12 @@ public class GuiShopsView extends Gui {
 
     private void changePage(int move) {
         page += move;
-        newInventory(54, title);
+        newInventory(54, Component.text(title));
     }
 
     @Override
     protected void populateInventory() {
-        displayShops(shops, true, showOwner, page, 54, this::changePage, allowTransactions ? shop -> shop.tryTransaction(user, false) : null);
+        displayShops(shops, true, showOwner, page, 54, this::changePage, allowTransactions
+            ? shop -> shop.tryTransaction(user, false) : null);
     }
 }

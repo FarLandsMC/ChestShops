@@ -22,8 +22,8 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.UUID;
 
 public class Shop {
-    private final ShopType type;
-    private       UUID     owner;
+    private final ShopType    type;
+    private final UUID        owner;
 
     private final Location    sign;
     private final Location    chest;
@@ -296,8 +296,7 @@ public class Shop {
             ChestShops.error("Removing shop at ([" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " +
                     chest.getBlockY() + ", " + chest.getBlockZ() +
                     "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getOwnerName());
-            if (sign.getBlock().getState() instanceof Sign) {
-                Sign signBlock = ((Sign) sign.getBlock().getState());
+            if (sign.getBlock().getState() instanceof Sign signBlock) {
                 signBlock.line(0, Component.text("[SHOP]").style(Style.style(NamedTextColor.RED, TextDecoration.BOLD)));
                 signBlock.line(1, Component.text("This chest").color(NamedTextColor.RED));
                 signBlock.line(2, Component.text("is missing.").color(NamedTextColor.RED));

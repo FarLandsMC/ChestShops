@@ -4,8 +4,9 @@ import com.kicasmads.cs.ChestShops;
 
 import net.kyori.adventure.nbt.*;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -140,7 +141,8 @@ public class DataHandler {
 		builderCache.put(sign, builder);
 		Bukkit.getScheduler().runTaskLater(ChestShops.getInstance(), () -> {
 			if (builderCache.remove(sign) != null && builder.getOwner().isOnline())
-				builder.getOwner().sendMessage(ChatColor.RED + "You did not create your shop fast enough! You will need to remake it.");
+				builder.getOwner().sendMessage(Component.text("You did not create your shop fast enough! You will need to remake it.")
+						.color(NamedTextColor.RED));
 		}, 2 * 60 * 20);
 	}
 

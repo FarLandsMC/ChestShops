@@ -6,6 +6,7 @@ import com.kicasmads.cs.data.DataHandler;
 import com.kicasmads.cs.event.CSEventHandler;
 import com.kicasmads.cs.gui.GuiHandler;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,7 +19,7 @@ public class ChestShops extends JavaPlugin {
     private Material currencyItem;
     private ItemStack currencyStack;
 
-    public static final String SHOP_HEADER = "[shop]";
+    public static final Component SHOP_HEADER = Component.text("[shop]");
     private static ChestShops instance;
 
     public ChestShops() {

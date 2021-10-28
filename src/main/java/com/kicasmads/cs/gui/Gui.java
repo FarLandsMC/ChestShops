@@ -5,8 +5,10 @@ import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.Utils;
 
 import com.kicasmads.cs.data.ShopType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -28,7 +30,7 @@ public abstract class Gui {
 
     protected Gui(int size, String displayName) {
         this.clickActions = new HashMap<>();
-        this.inv = Bukkit.createInventory(null, size, displayName);
+        this.inv = Bukkit.createInventory(null, size, Component.text(displayName));
         this.user = null;
         this.ignoreClose = false;
     }
@@ -50,21 +52,22 @@ public abstract class Gui {
         ChestShops.getGuiHandler().registerActiveGui(this);
     }
 
-    protected void setItem(int slot, Material material, String name, String... lore) {
+    protected void setItem(int slot, Material material, Component name, Component... lore) {
         setStack(slot, new ItemStack(material), name, lore);
     }
 
-    protected void setStack(int slot, ItemStack stack, String name, String... lore) {
+    protected void setStack(int slot, ItemStack stack, Component name, Component... lore) {
         ItemMeta meta = stack.getItemMeta();
-        meta.setDisplayName(name);
-        meta.setLore(Stream.of(lore).filter(Objects::nonNull).collect(Collectors.toList()));
+        meta.displayName(name);
+        meta.lore(Stream.of(lore).filter(component -> PlainTextComponentSerializer.plainText()
+            .serialize(component).length() > 1).collect(Collectors.toList()));
         stack.setItemMeta(meta);
         inv.setItem(slot, stack);
     }
 
     protected void displayShop(int slot, Shop shop, boolean showTransaction, boolean showOwner, Consumer<Shop> shopAction) {
-        String name = ChatColor.WHITE.toString() + shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
-                " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem());
+        Component name = Component.text(shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
+            " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem())).color(NamedTextColor.WHITE);
 
         ItemStack displayItem;
         if (shop.getType() == ShopType.BUY)
@@ -82,9 +85,9 @@ public abstract class Gui {
                     displayItem,
                     name,
                     action,
-                    "Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem()),
-                    "Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem()),
-                    showOwner ? "Owned by " + shop.getOwnerName() : null
+                    Component.text("Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem())),
+                    Component.text("Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem())),
+                    Component.text(showOwner ? "Owned by " + shop.getOwnerName() : "")
             );
         }
         // Display the location
@@ -94,9 +97,9 @@ public abstract class Gui {
                     displayItem,
                     name,
                     action,
-                    "At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
-                            shop.getChestLocation().getBlockZ(),
-                    showOwner ? "Owned by " + shop.getOwnerName() : null
+                    Component.text("At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
+                            shop.getChestLocation().getBlockZ()),
+                    Component.text(showOwner ? "Owned by " + shop.getOwnerName() : "")
             );
         }
     }
@@ -122,28 +125,30 @@ public abstract class Gui {
             }
 
             if (page == 0)
-                addLabel(45, Material.REDSTONE_BLOCK, ChatColor.RED + "No Previous Page");
+                addLabel(45, Material.REDSTONE_BLOCK, Component.text("No Previous Page").color(NamedTextColor.RED));
             else
-                addActionItem(45, Material.EMERALD_BLOCK, ChatColor.GREEN + "Previous Page", () -> pageChanger.accept(-1));
+                addActionItem(45, Material.EMERALD_BLOCK,
+                    Component.text("Previous Page").color(NamedTextColor.GREEN), () -> pageChanger.accept(-1));
 
             if ((page + 1) * 45 >= shops.size())
-                addLabel(53, Material.REDSTONE_BLOCK, ChatColor.RED + "No Next Page");
+                addLabel(53, Material.REDSTONE_BLOCK, Component.text("No Next Page").color(NamedTextColor.RED));
             else
-                addActionItem(53, Material.EMERALD_BLOCK, ChatColor.GREEN + "Next Page", () -> pageChanger.accept(1));
+                addActionItem(53, Material.EMERALD_BLOCK,
+                    Component.text("Next Page").color(NamedTextColor.GREEN), () -> pageChanger.accept(1));
         }
     }
 
-    protected void addActionItem(int slot, Material material, String name, Runnable action, String... lore) {
+    protected void addActionItem(int slot, Material material, Component name, Runnable action, Component... lore) {
         setItem(slot, material, name, lore);
         clickActions.put(slot, action);
     }
 
-    protected void addActionItem(int slot, ItemStack stack, String name, Runnable action, String... lore) {
+    protected void addActionItem(int slot, ItemStack stack, Component name, Runnable action, Component... lore) {
         setStack(slot, stack, name, lore);
         clickActions.put(slot, action);
     }
 
-    protected void addLabel(int slot, Material material, String name, String... lore) {
+    protected void addLabel(int slot, Material material, Component name, Component... lore) {
         addActionItem(slot, material, name, Utils.NO_ACTION, lore);
     }
 
@@ -152,7 +157,7 @@ public abstract class Gui {
         clickActions.put(slot, action);
     }
 
-    protected void newInventory(int size, String displayName) {
+    protected void newInventory(int size, Component displayName) {
         ignoreClose = true;
         user.closeInventory();
         inv = Bukkit.createInventory(null, size, displayName);
