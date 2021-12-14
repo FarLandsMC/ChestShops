@@ -1,4 +1,4 @@
-api-version: 1.17
+api-version: 1.18
 main: com.kicasmads.cs.ChestShops
 name: ChestShops
 description: A simple plugin for chest shops
