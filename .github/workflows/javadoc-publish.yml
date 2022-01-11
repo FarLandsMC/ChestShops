@@ -19,7 +19,7 @@ jobs:
       - name: Generate Javadoc
         run: mvn org.apache.maven.plugins:maven-javadoc-plugin:3.3.1:aggregate
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.8
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           token: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
           branch: javadoc
