@@ -21,8 +21,8 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.8
         with:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
-          BRANCH: javadoc
-          CLEAN: true
-          FOLDER: target/site/apidocs
-          TARGET_FOLDER: javadoc
+          token: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
+          branch: javadoc
+          clean: true
+          folder: /
+          target-folder: javadoc
