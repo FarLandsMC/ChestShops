@@ -25,5 +25,4 @@ jobs:
           token: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
           branch: gh-pages
           clean: true
-          folder: javadoc
-          target-folder: javadoc
+          folder: docs
