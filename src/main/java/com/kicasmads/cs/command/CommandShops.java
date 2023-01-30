@@ -59,7 +59,13 @@ public class CommandShops implements CommandExecutor, TabCompleter {
             .stream()
             .filter(s -> s.getOwnerName().equalsIgnoreCase(args[0]) && s.isNotEmpty())
             .findFirst()
-            .orElse(null);
+            .orElse(
+                dataHandler.getAllShops() // Not the cleanest, but it works :P
+                    .stream()
+                    .filter(s -> s.getOwnerName().toLowerCase().startsWith(args[0].toLowerCase()) && s.isNotEmpty())
+                    .findFirst()
+                    .orElse(null)
+            );
 
         if (shop == null) {
             player.sendMessage(Component.text("This player does not have any shops.").color(NamedTextColor.RED));
@@ -81,13 +87,11 @@ public class CommandShops implements CommandExecutor, TabCompleter {
                                       @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
             List<String> tabComplete = new ArrayList<>(List.of("me", "everyone"));
-            tabComplete.addAll(
-                dataHandler
-                    .getAllOwners()
-                    .stream()
-                    .map(OfflinePlayer::getName)
-                    .collect(Collectors.toList())
-            );
+            dataHandler
+                .getAllOwners()
+                .stream()
+                .map(OfflinePlayer::getName)
+                .forEach(tabComplete::add);
             return Utils.filterStartingWith(args[0], tabComplete);
         }
         return Collections.emptyList();

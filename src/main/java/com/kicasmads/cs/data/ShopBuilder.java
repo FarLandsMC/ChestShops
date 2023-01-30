@@ -8,10 +8,15 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
 
 public class ShopBuilder {
     private final ShopType type;
@@ -76,6 +81,11 @@ public class ShopBuilder {
 
     private void createShop() {
         Shop shop = new Shop(type, owner.getUniqueId(), sign, chest, buyItem, sellItem, buyAmount, sellAmount);
+
+        Block above = chest.getBlock().getRelative(BlockFace.UP);
+        if (!above.getType().isAir()) {
+            shop.getDisplay().setDisplayType(DisplayType.OFF);
+        }
         ShopCreateEvent event = new ShopCreateEvent(owner, shop);
         ChestShops.getInstance().getServer().getPluginManager().callEvent(event);
         ChestShops.getDataHandler().removeCachedBuilder(sign);

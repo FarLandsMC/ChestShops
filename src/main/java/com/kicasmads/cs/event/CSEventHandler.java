@@ -41,7 +41,11 @@ public class CSEventHandler implements Listener {
         List<Component> lines = event.lines();
         PlainTextComponentSerializer plainText = PlainTextComponentSerializer.builder().build();
 
-        if (lines.size() == 4 && ChestShops.SHOP_HEADER.equals(lines.get(0)) && event.getBlock().getBlockData() instanceof WallSign) {
+        if (
+            lines.size() == 4
+            && plainText.serialize(lines.get(0)).equalsIgnoreCase("[shop]")
+            && event.getBlock().getBlockData() instanceof WallSign
+        ) {
             // Make sure the sign is actually attached to a chest
             Block attachedTo = event.getBlock().getRelative(((WallSign)event.getBlock().getBlockData()).getFacing().getOppositeFace());
             if (attachedTo.getType() != Material.CHEST)
@@ -50,12 +54,6 @@ public class CSEventHandler implements Listener {
             // There's already a shop in place at the location
             if (ChestShops.getDataHandler().getShop(attachedTo.getLocation()) != null)
                 return;
-
-            Block above = attachedTo.getRelative(BlockFace.UP);
-            if (above != null && above.getType() != Material.AIR) {
-                player.sendMessage(Component.text("You must have an air block above the chest to create a shop.").color(RED));
-                return;
-            }
 
             int buyAmount, sellAmount;
 
