@@ -13,6 +13,8 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -103,37 +105,41 @@ public class ShopBuilder {
     private void formatSign(boolean red) {
         Sign signBlock = (Sign) sign.getBlock().getState();
 
-        signBlock.line(0, ChestShops.SHOP_HEADER.decorate(TextDecoration.BOLD)
+        signBlock.setWaxed(true);
+
+        SignSide signSide = signBlock.getSide(Side.FRONT);
+
+        signSide.line(0, ChestShops.SHOP_HEADER.decorate(TextDecoration.BOLD)
             .color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
         switch (type) {
             case SELL -> {
-                signBlock.line(1,
+                signSide.line(1,
                     Component.text("Selling: ").color(red ? NamedTextColor.RED : NamedTextColor.BLACK)
                         .append(Component.text(sellAmount).decoration(TextDecoration.BOLD, red))
                 );
-                signBlock.line(2,
+                signSide.line(2,
                     Component.text(buyAmount + " ").color(red ? NamedTextColor.RED : NamedTextColor.GREEN)
                         .append(Component.text(Utils.getItemName(buyItem)  + (buyAmount > 1 ? "s" : "")))
                 );
             }
             case BUY -> {
-                signBlock.line(1,
+                signSide.line(1,
                     Component.text("Buying: ").color(red ? NamedTextColor.RED : NamedTextColor.BLACK)
                         .append(Component.text(buyAmount).decoration(TextDecoration.BOLD, red))
                 );
-                signBlock.line(2,
+                signSide.line(2,
                     Component.text(sellAmount + " ").color(red ? NamedTextColor.RED : NamedTextColor.GREEN)
                         .append(Component.text(Utils.getItemName(sellItem)  + (sellAmount > 1 ? "s" : "")))
                 );
             }
             case BARTER -> {
-                signBlock.line(1, Component.text("Bartering")
+                signSide.line(1, Component.text("Bartering")
                     .color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
-                signBlock.line(2, Component.text(buyAmount + " for " + sellAmount)
+                signSide.line(2, Component.text(buyAmount + " for " + sellAmount)
                         .color(red ? NamedTextColor.RED : NamedTextColor.GREEN));
             }
         }
-        signBlock.line(3, Component.text(owner.getName()).color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
+        signSide.line(3, Component.text(owner.getName()).color(red ? NamedTextColor.RED : NamedTextColor.BLACK));
         signBlock.update();
     }
 

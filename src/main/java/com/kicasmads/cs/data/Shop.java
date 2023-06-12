@@ -14,6 +14,8 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -297,10 +299,11 @@ public class Shop {
                     chest.getBlockY() + ", " + chest.getBlockZ() +
                     "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getOwnerName());
             if (sign.getBlock().getState() instanceof Sign signBlock) {
-                signBlock.line(0, Component.text("[SHOP]").style(Style.style(NamedTextColor.RED, TextDecoration.BOLD)));
-                signBlock.line(1, Component.text("This chest").color(NamedTextColor.RED));
-                signBlock.line(2, Component.text("is missing.").color(NamedTextColor.RED));
-                signBlock.line(3, Component.text("Shop Removed.").color(NamedTextColor.RED));
+                SignSide side = signBlock.getSide(Side.FRONT);
+                side.line(0, Component.text("[SHOP]").style(Style.style(NamedTextColor.RED, TextDecoration.BOLD)));
+                side.line(1, Component.text("This chest").color(NamedTextColor.RED));
+                side.line(2, Component.text("is missing.").color(NamedTextColor.RED));
+                side.line(3, Component.text("Shop Removed.").color(NamedTextColor.RED));
                 signBlock.update();
             }
             if(removeFromList){
