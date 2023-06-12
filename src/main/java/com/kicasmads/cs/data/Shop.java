@@ -295,9 +295,14 @@ public class Shop {
     public boolean removeIfInvalidChest(boolean removeFromList){
         if(!(chest.getBlock().getState() instanceof Chest)) {
             display.removeShopDisplay();
-            ChestShops.error("Removing shop at ([" + chest.getWorld().getName() + "] " + chest.getBlockX() + ", " +
-                    chest.getBlockY() + ", " + chest.getBlockZ() +
-                    "). The block is not CHEST, it is " + chest.getBlock().getType().name() + ". Shop Owner: " + getOwnerName());
+            ChestShops.error(
+                "Removing shop at ([%s] %d, %d, %d). The block is not CHEST, it is %s. Shop Owner: %s".formatted(
+                    chest.getWorld().getName(),
+                    chest.getBlockX(), chest.getBlockY(), chest.getBlockZ(),
+                    chest.getBlock().getType().name(),
+                    getOwnerName()
+                )
+            );
             if (sign.getBlock().getState() instanceof Sign signBlock) {
                 SignSide side = signBlock.getSide(Side.FRONT);
                 side.line(0, Component.text("[SHOP]").style(Style.style(NamedTextColor.RED, TextDecoration.BOLD)));

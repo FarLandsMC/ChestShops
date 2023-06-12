@@ -7,6 +7,7 @@ import com.kicasmads.cs.data.Shop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
@@ -110,7 +111,10 @@ public class GuiGlobalView extends Gui {
         ItemStack head = Utils.getHead(owner);
         ItemMeta meta = head.getItemMeta();
 
-        meta.displayName(Component.text(owner.getName()).style(Style.empty()));
+        meta.displayName(
+            Component.text(owner.getName())
+                .decoration(TextDecoration.ITALIC, false)
+        );
         meta.lore(List.of(
             Component.text("Click to View Shops.").color(NamedTextColor.WHITE),
             Component.text("Shops: " + ownerGroupedShops.get(owner.getUniqueId()).size()).color(NamedTextColor.GRAY)

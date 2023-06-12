@@ -7,6 +7,7 @@ import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.data.ShopType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,8 +67,14 @@ public abstract class Gui {
     }
 
     protected void displayShop(int slot, Shop shop, boolean showTransaction, boolean showOwner, Consumer<Shop> shopAction) {
-        Component name = Component.text(shop.getBuyAmount() + " " + Utils.getItemName(shop.getBuyItem()) +
-            " -> " + shop.getSellAmount() + " " + Utils.getItemName(shop.getSellItem())).color(NamedTextColor.WHITE);
+        Component name = Component.text(
+                "%d %s -> %d %s".formatted(
+                    shop.getBuyAmount(), Utils.getItemName(shop.getBuyItem()),
+                    shop.getSellAmount(), Utils.getItemName(shop.getSellItem())
+                )
+            )
+            .color(NamedTextColor.WHITE)
+            .decoration(TextDecoration.ITALIC, false);
 
         ItemStack displayItem;
         if (shop.getType() == ShopType.BUY)
