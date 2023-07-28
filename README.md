@@ -7,7 +7,7 @@ It can be used for buying, selling, or trading items using chests and signs
 ## Dev
 
 Your IDE probably has fancy buttons to handle these things, but if you
-wan to use the terminal:
+want to use the terminal:
 
 ```shell
 # Install dependencies
