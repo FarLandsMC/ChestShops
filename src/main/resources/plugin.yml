@@ -7,7 +7,7 @@ version: ${project.version}
 commands:
   shops:
     description: View a player's shops
-    usage: /shops [me|everyone|playername]
+    usage: /shops [me|everyone|playername] [sell|buy|barter]
   searchshops:
     description: Search for a specific item being sold or bought
     usage: /searchshops <item> [sell|buy]

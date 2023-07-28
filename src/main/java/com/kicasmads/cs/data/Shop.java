@@ -20,7 +20,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class Shop {
@@ -90,7 +93,73 @@ public class Shop {
         }catch (Exception ignored){}
     }
 
-    public final ShopType getType() {
+    public ItemStack getDisplayItem(boolean showOwner) {
+        // these don't actually need to be initialised here, but Java's kinda dumb
+        int a_qty = 0;
+        int price_qty = 0;
+        ItemStack price_item = null;
+
+        ItemStack is = switch (this.getType()) {
+            case BUY, BARTER -> {
+                ItemStack i = this.getBuyItem().clone();
+                if (this.getBuyAmount() <= 127) {
+                    i.setAmount(this.getBuyAmount());
+                }
+                a_qty = this.getBuyAmount();
+                price_qty = this.getSellAmount();
+                price_item = this.getSellItem();
+                yield i;
+            }
+            case SELL -> {
+                ItemStack i = this.getSellItem().clone();
+                if (this.getSellAmount() <= 127) {
+                    i.setAmount(this.getSellAmount());
+                }
+                a_qty = this.getSellAmount();
+                price_qty = this.getBuyAmount();
+                price_item = this.getBuyItem();
+                yield i;
+            }
+        };
+
+        String verb = this.getType().verb();
+
+        ItemMeta meta = is.getItemMeta();
+        meta.displayName(
+            Component.empty() // append to empty so that styles don't affect each other
+                .decoration(TextDecoration.ITALIC, false)
+                .append(Component.text("%s %dx".formatted(verb, a_qty), NamedTextColor.GOLD))
+                .append(Component.space())
+                .append(is.displayName())
+        );
+
+        ArrayList<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.add(
+            Component.empty() // append to empty so that styles don't affect each other
+                .decoration(TextDecoration.ITALIC, false)
+                .append(Component.text("for %dx ".formatted(price_qty), NamedTextColor.AQUA))
+                .append(price_item.displayName())
+        );
+
+        if (showOwner) {
+            lore.add(
+                Component.text("Owner: %s".formatted(this.getOwnerName()), NamedTextColor.BLUE)
+                    .decoration(TextDecoration.ITALIC, false)
+            );
+        }
+
+        if (this.isEmpty()) {
+            lore.add(Component.text("This shop is empty.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        }
+
+        meta.lore(lore);
+
+        is.setItemMeta(meta);
+
+        return is;
+    }
+
+    public final @NotNull ShopType getType() {
         return type;
     }
 
@@ -129,9 +198,10 @@ public class Shop {
     public ShopDisplay getDisplay() { return display; }
 
     public int getRequiredOpenSlots() {
-        if(removeIfInvalidChest()){
+        if (removeIfInvalidChest()){
             return 0;
         }
+
         double changeOnTransaction = ((double) buyAmount) / buyItem.getMaxStackSize() -
                 ((double) sellAmount) / sellItem.getMaxStackSize();
 
@@ -147,13 +217,13 @@ public class Shop {
         }
     }
 
-    public boolean isNotEmpty() {
-        if(removeIfInvalidChest()){
+    public boolean isEmpty() {
+        if (removeIfInvalidChest()){
             return false;
         }
         Chest shopChest = (Chest) chest.getBlock().getState();
         Inventory chestinventory = shopChest.getInventory();
-        return Utils.firstSimilar(sellItem, chestinventory) >= 0;
+        return Utils.firstSimilar(sellItem, chestinventory) == -1;
     }
 
     public void tryTransaction(Player player, boolean requireHoldingBuyItem) {
@@ -170,16 +240,14 @@ public class Shop {
         // Make sure shop can pay out
         if (!chestinventory.containsAtLeast(sellItem, sellAmount)) {
             player.sendMessage(
-                Component.text("This shop is out of stock. Come back later.")
-                    .color(NamedTextColor.RED)
+                Component.text("This shop is out of stock. Come back later.", NamedTextColor.RED)
             );
             return;
         }
 
-        if (chestinventory.firstEmpty() == -1 && Utils.firstInsertableStack(chestinventory, buyItem) == -1) {
+        if (Utils.emptySlots(chestinventory) < this.getRequiredOpenSlots() && Utils.firstInsertableStack(chestinventory, buyItem) == -1) {
             player.sendMessage(
-                Component.text("Chest is full and cannot accept any more transactions")
-                    .color(NamedTextColor.RED)
+                Component.text("Chest is full and cannot accept any more transactions", NamedTextColor.RED)
             );
             return;
         }
@@ -189,8 +257,7 @@ public class Shop {
         // Make sure player can pay
         if (!playerInventory.containsAtLeast(buyItem, buyAmount)) {
             player.sendMessage(
-                Component.text("You need " + buyAmount + " " + Utils.getItemName(buyItem) + " in order to buy this.")
-                    .color(NamedTextColor.RED)
+                Component.text("You need " + buyAmount + " " + Utils.getItemName(buyItem) + " in order to buy this.", NamedTextColor.RED)
             );
             return;
         }
@@ -198,8 +265,7 @@ public class Shop {
         // The player must be holding the buy item
         if (requireHoldingBuyItem && !playerInventory.getItemInMainHand().isSimilar(buyItem)) {
             player.sendMessage(
-                Component.text("You must be holding item this shop requires from you.")
-                    .color(NamedTextColor.RED)
+                Component.text("You must be holding item this shop requires from you.", NamedTextColor.RED)
             );
             return;
         }

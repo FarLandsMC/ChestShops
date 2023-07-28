@@ -4,6 +4,7 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.data.DataHandler;
 import com.kicasmads.cs.data.Shop;
+import com.kicasmads.cs.data.ShopType;
 import com.kicasmads.cs.gui.GuiGlobalView;
 import com.kicasmads.cs.gui.GuiShopsView;
 import net.kyori.adventure.text.Component;
@@ -16,9 +17,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandShops implements CommandExecutor, TabCompleter {
@@ -45,30 +44,31 @@ public class CommandShops implements CommandExecutor, TabCompleter {
                 dataHandler.getShops(player.getUniqueId()),
                 "My Shops",
                 false,
-                false
+                false,
+                null
             ).openGui(player);
             return true;
         }
 
         if (args.length == 0 || args[0].equalsIgnoreCase("everyone")) {
-            new GuiGlobalView().openGui(player);
+            new GuiGlobalView(args.length <= 1 ? null : Utils.valueOfFormattedName(args[1], ShopType.class)).openGui(player);
             return true;
         }
 
         Shop shop = dataHandler.getAllShops()
             .stream()
-            .filter(s -> s.getOwnerName().equalsIgnoreCase(args[0]) && s.isNotEmpty())
+            .filter(s -> s.getOwnerName().equalsIgnoreCase(args[0]))
             .findFirst()
-            .orElse(
-                dataHandler.getAllShops() // Not the cleanest, but it works :P
+            .orElseGet(
+                () -> dataHandler.getAllShops()
                     .stream()
-                    .filter(s -> s.getOwnerName().toLowerCase().startsWith(args[0].toLowerCase()) && s.isNotEmpty())
+                    .filter(s -> s.getOwnerName().toLowerCase().startsWith(args[0].toLowerCase()))
                     .findFirst()
                     .orElse(null)
             );
 
         if (shop == null) {
-            player.sendMessage(Component.text("This player does not have any shops.").color(NamedTextColor.RED));
+            player.sendMessage(Component.text("This player does not have any shops.", NamedTextColor.RED));
             return true;
         }
 
@@ -76,7 +76,8 @@ public class CommandShops implements CommandExecutor, TabCompleter {
             dataHandler.getShops(shop.getOwner()),
             shop.getOwnerName() + "'s Shops",
             true,
-            false
+            false,
+            args.length == 1 ? null : Utils.valueOfFormattedName(args[1], ShopType.class)
         ).openGui(player);
         return true;
 
@@ -85,14 +86,19 @@ public class CommandShops implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd,
                                       @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
-            List<String> tabComplete = new ArrayList<>(List.of("me", "everyone"));
-            dataHandler
-                .getAllOwners()
-                .stream()
-                .map(OfflinePlayer::getName)
-                .forEach(tabComplete::add);
-            return Utils.filterStartingWith(args[0], tabComplete);
+        switch (args.length) {
+            case 1 -> {
+                List<String> tabComplete = new ArrayList<>(List.of("me", "everyone"));
+                dataHandler
+                    .getAllOwners()
+                    .stream()
+                    .map(OfflinePlayer::getName)
+                    .forEach(tabComplete::add);
+                return Utils.filterStartingWith(args[0], tabComplete);
+            }
+            case 2 -> {
+                return Utils.filterStartingWith(args[1], Arrays.stream(ShopType.values()).map(Utils::formattedName).toList());
+            }
         }
         return Collections.emptyList();
     }

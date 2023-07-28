@@ -4,46 +4,62 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.Utils;
 import com.kicasmads.cs.data.Shop;
 
+import com.kicasmads.cs.data.ShopType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.inventory.CreativeCategory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class GuiGlobalView extends Gui {
     private final Map<UUID, List<Shop>> ownerGroupedShops;
     private final List<OfflinePlayer> shopOwners;
+    private final @Nullable ShopType typeFilter;
     private OfflinePlayer currentViewedOwner;
     private int ownersPage, shopsPage;
 
-    public GuiGlobalView() {
+    private static final ItemStack BACK_BUTTON;
+
+    static {
+        BACK_BUTTON = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = BACK_BUTTON.getItemMeta();
+        meta.displayName(Component.text("Back", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        BACK_BUTTON.setItemMeta(meta);
+    }
+
+    public GuiGlobalView(@Nullable ShopType typeFilter) {
         super(54, "Shop Owners");
         this.ownerGroupedShops = new HashMap<>();
         this.shopOwners = new ArrayList<>();
         this.currentViewedOwner = null;
         this.ownersPage = 0;
         this.shopsPage = 0;
+        this.typeFilter = typeFilter;
+
         // TODO: Don't show chests that are out of stock (Too much lag to load the inventories)
-        ChestShops.getDataHandler().getAllShops().stream().forEach(shop -> {
+        ChestShops.getDataHandler().getAllShops().forEach(shop -> {
             List<Shop> ownerShops = ownerGroupedShops.get(shop.getOwner());
+
             if (ownerShops == null) {
                 ownerShops = new ArrayList<>();
-                ownerShops.add(shop);
                 ownerGroupedShops.put(shop.getOwner(), ownerShops);
-
-                // Intentionally refresh the profile
                 shopOwners.add(shop.getOwnerOfflinePlayer());
-            } else
+            }
+
+            if (typeFilter == null || shop.getType() == typeFilter) {
                 ownerShops.add(shop);
+            }
         });
 
         // Sort by username
-         shopOwners.sort(Comparator.comparing(OfflinePlayer::getName));
+        shopOwners.sort(Comparator.comparing(OfflinePlayer::getName));
     }
 
     private void changeOwnersPage(int move) {
@@ -84,13 +100,15 @@ public class GuiGlobalView extends Gui {
             }
         } else {
             displayShops(
-                    ownerGroupedShops.get(currentViewedOwner.getUniqueId()),
-                    false,
-                    false,
-                    shopsPage,
-                    45,
-                    this::changeShopsPage,
-                    shop -> shop.tryTransaction(user, false)
+                ownerGroupedShops.get(currentViewedOwner.getUniqueId())
+                    .stream()
+                    .sorted(Comparator.comparing(Shop::getType))
+                    .toList(),
+                false,
+                shopsPage,
+                45,
+                this::changeShopsPage,
+                shop -> shop.tryTransaction(user, false)
             );
             addActionItem(49, Material.NETHER_STAR, Component.text("Back"), this::displayOwners);
         }

@@ -206,4 +206,15 @@ public class Utils {
         return skull;
 
     }
+
+    public static int emptySlots(Inventory inv) {
+        ItemStack[] contents = inv.getContents();
+        int count = 0;
+        for (ItemStack content : contents) {
+            if (content == null || content.getType() == Material.AIR) {
+                ++count;
+            }
+        }
+        return count;
+    }
 }

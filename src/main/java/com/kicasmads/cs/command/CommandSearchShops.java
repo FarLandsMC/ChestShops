@@ -61,7 +61,8 @@ public class CommandSearchShops implements CommandExecutor, TabCompleter {
             shops,
             "Shops",
             true,
-            true
+            true,
+            null
         ).openGui(player);
         return true;
     }

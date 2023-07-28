@@ -4,10 +4,8 @@ import com.kicasmads.cs.ChestShops;
 import com.kicasmads.cs.data.Shop;
 import com.kicasmads.cs.Utils;
 
-import com.kicasmads.cs.data.ShopType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,54 +64,19 @@ public abstract class Gui {
         inv.setItem(slot, stack);
     }
 
-    protected void displayShop(int slot, Shop shop, boolean showTransaction, boolean showOwner, Consumer<Shop> shopAction) {
-        Component name = Component.text(
-                "%d %s -> %d %s".formatted(
-                    shop.getBuyAmount(), Utils.getItemName(shop.getBuyItem()),
-                    shop.getSellAmount(), Utils.getItemName(shop.getSellItem())
-                )
-            )
-            .color(NamedTextColor.WHITE)
-            .decoration(TextDecoration.ITALIC, false);
-
-        ItemStack displayItem;
-        if (shop.getType() == ShopType.BUY)
-            displayItem = new ItemStack(Material.CHEST);
-        else {
-            displayItem = shop.getSellItem().clone();
-            displayItem.setAmount(shop.getSellAmount());
-        }
-
+    protected void displayShop(int slot, Shop shop, boolean showOwner, Consumer<Shop> shopAction) {
         // Display what it's buying and selling
-        Runnable action = shopAction == null ? Utils.NO_ACTION : () -> shopAction.accept(shop);
-        if (showTransaction) {
-            addActionItem(
-                    slot,
-                    displayItem,
-                    name,
-                    action,
-                    Component.text("Buying: " + shop.getBuyAmount() + "x " + Utils.getItemName(shop.getBuyItem())),
-                    Component.text("Selling: " + shop.getSellAmount() + "x " + Utils.getItemName(shop.getSellItem())),
-                    Component.text(showOwner ? "Owned by " + shop.getOwnerName() : "")
-            );
-        }
-        // Display the location
-        else {
-            addActionItem(
-                    slot,
-                    displayItem,
-                    name,
-                    action,
-                    Component.text("At: " + shop.getChestLocation().getBlockX() + " " + shop.getChestLocation().getBlockY() + " " +
-                            shop.getChestLocation().getBlockZ()),
-                    Component.text(showOwner ? "Owned by " + shop.getOwnerName() : "")
-            );
-        }
+        addActionItem(
+            slot,
+            shop.getDisplayItem(showOwner),
+            shopAction == null
+                ? Utils.NO_ACTION
+                : () -> shopAction.accept(shop)
+        );
     }
 
     protected void displayShops(
             List<Shop> shops,
-            boolean showTransaction,
             boolean showOwner,
             int page,
             int pageCut,
@@ -123,12 +86,12 @@ public abstract class Gui {
         if (shops.size() <= pageCut) {
             int slot = 0;
             for (Shop shop : shops) {
-                displayShop(slot, shop, showTransaction, showOwner, shopAction);
+                displayShop(slot, shop, showOwner, shopAction);
                 ++ slot;
             }
         } else {
             for (int i = page * 45;i < Math.min((page + 1) * 45, shops.size());++ i) {
-                displayShop(i % 45, shops.get(i), showTransaction, showOwner, shopAction);
+                displayShop(i % 45, shops.get(i), showOwner, shopAction);
             }
 
             if (page == 0)
