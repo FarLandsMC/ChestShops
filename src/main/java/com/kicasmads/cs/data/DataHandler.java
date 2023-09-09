@@ -108,7 +108,7 @@ public class DataHandler {
 		CompoundBinaryTag root;
 
 		try {
-			root = BinaryTagIO.reader().read(new FileInputStream(file));
+			root = BinaryTagIO.reader(Long.MAX_VALUE).read(new FileInputStream(file));
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read " + fileName + ". Did you give the process access to the file system?", e);
 		}
